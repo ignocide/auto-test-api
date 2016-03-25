@@ -62,11 +62,29 @@ var request = function(fcDone, method, url, body, headers){
 					fcDone(res);
 			});
 		}else if('put' == method.toLowerCase()){
-
+			var req = http.put(url);
+			headers = headers || vs.headers;
+			if(headers) req.headers(headers);
+			req.send(new Buffer(JSON.stringify(body))).end(function(res){
+				if(fcDone)
+					fcDone(res);
+			});
 		}else if('delete' == method.toLowerCase()){
-			
+			var req = http.delete(url);
+			headers = headers || vs.headers;
+			if(headers) req.headers(headers);
+			req.send(new Buffer(JSON.stringify(body))).end(function(res){
+				if(fcDone)
+					fcDone(res);
+			});
 		}else if('head' == method.toLowerCase()){
-			
+			var req = http.head(url);
+			headers = headers || vs.headers;
+			if(headers) req.headers(headers);
+			req.end(function(res){
+				if(fcDone)
+					fcDone(res);
+			});
 		}else{
 			var req = http.get(url);
 			headers = headers || vs.headers;
