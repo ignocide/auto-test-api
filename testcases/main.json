@@ -1,0 +1,9 @@
+{
+	"project": "What seat",
+	"headers" : {
+		"content-type": "application/json"
+	},
+	"testcases": [
+		"testcases/login.json"
+	]
+}

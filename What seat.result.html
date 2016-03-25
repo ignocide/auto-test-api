@@ -1,0 +1,54 @@
+<html ng-app="my-app">
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min.js"></script>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
+		<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+	</head>
+	<body ng-controller="TestResultController">
+		<h1 ng-bind="data.project"></h1>
+		<ul class="mdl-components__warning" style="color: orange;">
+			<li ng-repeat="w in data.warning" ng-bind="w"></li>
+		</ul>
+		<hr/>
+		<div ng-repeat="testcase in data.testcases">
+			<h3 ng-bind="testcase.title"></h3>
+			<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+				<thead>
+					<tr>
+						<th class="mdl-data-table__cell--non-numeric"></th>
+						<th class="mdl-data-table__cell--non-numeric"></th>
+						<th class="mdl-data-table__cell--non-numeric">Url</th>
+						<th class="mdl-data-table__cell--non-numeric">Expect</th>
+						<th class="mdl-data-table__cell--non-numeric">Actual</th>
+						<th class="mdl-data-table__cell--non-numeric">Variable</th>
+						<th class="mdl-data-table__cell--non-numeric">Description</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="api in testcase.api" style="color: {{api.resultTest ? (api.resultTest.pass ? 'green' : 'red') : ''}}" id="{{api.id}}">
+						<th class="mdl-data-table__cell--non-numeric"><b ng-bind="api.id"></b></th>
+						<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}"><b ng-bind="api.method.toUpperCase()"></b><br/><small>( {{api.resultTest.duration}} ms )</small></td>
+						<td class="mdl-data-table__cell--non-numeric" ng-bind="api.url"></td>
+						<td class="mdl-data-table__cell--non-numeric" title="{{api.expect | json}}"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog(api.expect)"></a></td>
+						<td class="mdl-data-table__cell--non-numeric" title="{{api.actual | json}}"><a href="javascript:void(0)" ng-bind="api.actual" ng-click="showLog(api.actual)"></a></td>
+						<td class="mdl-data-table__cell--non-numeric"><b ng-bind="api.var" style="color: black;"></b></td>
+						<td class="mdl-data-table__cell--non-numeric">
+							<div ng-bind="api.resultTest.des"></div>
+							<a href="#{{api.resultTest.impactId}}" ng-if="api.resultTest.impactId">impact to {{api.resultTest.impactId}}</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+	<script type="text/javascript">
+		angular.module('my-app', [])
+		  .controller('TestResultController', function($scope, $http) {
+		    $scope.data = {"project":"What seat","headers":{"content-type":"application/json","user-agent":"http-request/v0.7.0 (http://git.io/tl_S2w) node.js/v5.8.0","accept-encoding":"gzip,deflate","content-length":53},"testcases":[{"title":"API Login","api":[{"method":"POST","url":"http://marketplace.hugelist.org:8080/hugelist/account/login","body":{"userName":"vinhpq177@gmail.com","passWord":"123Aa"},"var":"currentUser","expect":{"status":200,"data":{"code":"OK"}},"id":"N-0","resultTest":{"start":1458899969123,"stop":1458899969616,"duration":493,"pass":true},"actual":{"code":"OK","value":"Login was successful","baseClass":[{"id":"92c3936b-6e31-4a91-add7-e630b7664579","aid":"92c3936b-6e31-4a91-add7-e630b7664579","userName":"ryan","token":"828f206332bb87c3cedf6e08f6678b2c","passWord":"58D6EE820C14300E27921F73CEA00F413241E441","email":"vinhpq177@gmail.com","postCount":null,"displayName":"","aboutMe":"","address":"","mobile":"","avatar":"","background":"","deviceId":["APA91bHePRsxyYjIIwCnuc2JjSW6IoXWUtwkVBfyCzuVX9UVec2e4eb4MH4Xg8jegY8nG2os8KLefoxlYgIR17aqQi4R6G0AvAe7oz473w27-33eTRr-jLQo6o1Abd3xUBftXSTSXm14"],"profile":"","role":"HL_ADMIN","accountType":0,"fbId":"","gplusId":"","twId":""}]}},{"method":"POST","url":"http://marketplace.hugelist.org:8080/hugelist/campaign/getListCampaign","var":"listCategoryHome","body":{"aid":"92c3936b-6e31-4a91-add7-e630b7664579","token":"828f206332bb87c3cedf6e08f6678b2c"},"expect":{"data":{"code":"OK"}},"id":"N-1","resultTest":{"start":1458899969616,"stop":1458899970123,"duration":507,"pass":true},"actual":{"code":"OK","value":"Getlist campaign success","baseClass":[{"id":"1eafce1f-6e4e-4347-898b-218165341b10","accountAid":"92c3936b-6e31-4a91-add7-e630b7664579","accountName":"ryan","categoryId":"97c66ef4-a179-483f-841b-592152ef8c81","subCategoryId":"0ce25556-1b11-4f52-a346-9cb6a0c778a9","title":"shop trẻ em đại hạ giá","description":"","userLikeState":0,"flagCount":0,"desHtml":"<p>nội dung</p>","campaignTypeId":null,"campaignTypeName":null,"viewCount":38,"showPrice":0,"price":10,"images":["92c3936b-6e31-4a91-add7-e630b7664579/6a1338c7-e9e1-4245-b272-2051267a22a1/4793d592-5c66-4927-81d1-74b6509a7e2f.jpg","92c3936b-6e31-4a91-add7-e630b7664579/f6a702e8-bbc5-49e1-aa75-6a20f9019995/ef1373ae-036d-4c6d-8095-7f6973bc07db.jpg"],"details":[],"state":0,"soldDate":null,"removeDate":null,"expiredDate":"","crawlerUrl":null,"hugelistUrl":null,"discountStatus":0,"dailyStatus":0,"dailyAmount":0,"dailyAType":0,"dailyAmountMax":0,"dailyAMType":0,"currentDailyAmount":0,"bulkStatus":0,"bulks":[],"createDate":"2016/01/07 23:42:48 -05:00","acceptOfferStatus":0,"location":"","like":0,"rating":0,"comments":null},{"id":"b88890ed-c22d-4a9f-bf00-23fdd618ad6e","accountAid":"92c3936b-6e31-4a91-add7-e630b7664579","accountName":"ryan","categoryId":"97c66ef4-a179-483f-841b-592152ef8c81","subCategoryId":"0ce25556-1b11-4f52-a346-9cb6a0c778a9","title":"shop tr? con","description":"","userLikeState":0,"flagCount":0,"desHtml":"<p>n?i dung</p>","campaignTypeId":null,"campaignTypeName":null,"viewCount":0,"showPrice":0,"price":14,"images":[],"details":[],"state":0,"soldDate":null,"removeDate":null,"expiredDate":"","crawlerUrl":null,"hugelistUrl":null,"discountStatus":0,"dailyStatus":0,"dailyAmount":0,"dailyAType":0,"dailyAmountMax":0,"dailyAMType":0,"currentDailyAmount":0,"bulkStatus":0,"bulks":[],"createDate":"2016/01/06 04:55:49 -05:00","acceptOfferStatus":0,"location":"","like":0,"rating":0,"comments":null}]}},{"method":"POST","url":"http://marketplace.hugelist.org:8080/hugelist/campaign/getCampaign","body":{"accountAid":"92c3936b-6e31-4a91-add7-e630b7664579"},"expect":{"status":200},"id":"N-2","resultTest":{"start":1458899970123,"stop":1458899970942,"duration":819,"pass":true}}]}]};
+		    $scope.showLog = function(obj){
+		    	console.log(obj);
+		    }
+		  });
+	</script>
+</html>

@@ -1,0 +1,40 @@
+{
+	"title": "API Account",
+	"api": [
+		{
+			"method": "GET",
+			"url": "http://marketplace.hugelist.org:8080/hugelist/category/getListCategory",
+			"var": "listCategory",
+			"expect": {
+				"status": 200,
+				"data": {}
+			}
+		},
+		{
+			"method": "POST",
+			"url": "http://marketplace.hugelist.org:8080/hugelist/search/search",
+			"headers" : {
+				"content-type": "application/json"
+			},
+			"body": {
+		    "accountAid": "",
+		    "appId": "",
+		    "keyword": "",
+		    "min_price": "",
+		    "max_price": "",
+		    "category_id": "$listCategory.baseClass[0].id",
+		    "subcategory_id": "",
+		    "details": [],
+		    "start": 0,
+		    "rows": 10,
+		    "state": "",
+		    "orders": "",
+		    "location": "",
+		    "distance": ""
+			},
+			"expect": {
+				"data": {}
+			}
+		}
+	]
+}

@@ -1,0 +1,45 @@
+{
+	"title": "API Login",
+	"api": [
+		{
+			"method": "POST",
+			"url": "http://marketplace.hugelist.org:8080/hugelist/account/login",
+			"body": {
+			    "userName": "vinhpq177@gmail.com",
+			    "passWord": "123Aa"
+			},
+			"var": "currentUser",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"method": "POST",
+			"url" : "http://marketplace.hugelist.org:8080/hugelist/campaign/getListCampaign",
+			"var": "listCategoryHome",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}	
+			}
+		},
+		{
+			"method": "POST",
+			"url": "http://marketplace.hugelist.org:8080/hugelist/campaign/getCampaign",
+			"body": {
+		    "accountAid": "${currentUser.baseClass[0].aid}",
+		    "campaignId": "${listCategoryHome.baseClass[0].campaignId}"
+			},
+			"expect": {
+				"status": 200
+			}
+		}
+	]
+}
