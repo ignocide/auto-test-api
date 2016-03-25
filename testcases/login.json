@@ -2,11 +2,12 @@
 	"title": "API Login",
 	"api": [
 		{
+			"des": "Login",
 			"method": "POST",
-			"url": "http://marketplace.hugelist.org:8080/hugelist/account/login",
+			"url": "http://localhost:8080/nanacloset/account/login",
 			"body": {
-			    "userName": "vinhpq177@gmail.com",
-			    "passWord": "123Aa"
+			    "userName": "user@gmail.com",
+			    "passWord": "12345"
 			},
 			"var": "currentUser",
 			"expect": {
@@ -17,9 +18,10 @@
 			}
 		},
 		{
+			"des": "Get all campaign",
 			"method": "POST",
-			"url" : "http://marketplace.hugelist.org:8080/hugelist/campaign/getListCampaign",
-			"var": "listCategoryHome",
+			"url" : "http://localhost:8080/nanacloset/campaign/getListCampaign",
+			"var": "listCampaign",
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}"
@@ -31,14 +33,16 @@
 			}
 		},
 		{
+			"des": "Get details campaign",
 			"method": "POST",
-			"url": "http://marketplace.hugelist.org:8080/hugelist/campaign/getCampaign",
+			"url": "http://localhost:8080/nanacloset/campaign/getCampaign",
 			"body": {
 		    "accountAid": "${currentUser.baseClass[0].aid}",
-		    "campaignId": "${listCategoryHome.baseClass[0].campaignId}"
+		    "campaignId": "${listCampaign.baseClass[0].id}"
 			},
 			"expect": {
-				"status": 200
+				"status": 200,
+				"data": {}
 			}
 		}
 	]

@@ -4,6 +4,7 @@
 		"content-type": "application/json"
 	},
 	"testcases": [
-		"testcases/login.json"
+		"testcases/login.json",
+		"testcases/account.json"
 	]
 }

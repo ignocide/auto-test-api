@@ -1,4 +1,4 @@
-var http = require('http-request');
+var http = require('unirest');
 var jsonfile = require('jsonfile');
 var file = 'testcases/main.json';
 var fs = require('fs');
@@ -33,7 +33,8 @@ var handleBody = function(body){
 			}
 		}		
 	}	
-	return JSON.stringify(body);
+	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._body = body;
+	return body;
 }
 var handleUrl = function(url){
 	var regex = /\$\{([^\>]+)\}/.exec(url);	
@@ -41,6 +42,7 @@ var handleUrl = function(url){
 		var varName = regex[1];
 		try{
 			url = url.replace(/\$\{([^\>]+)\}/, eval('vs.' + varName));
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._url = url;
 		}catch(e){
 			throw 'Variable "' + varName + '" in url "' + url + '" has problem ' + e;
 		}
@@ -49,18 +51,13 @@ var handleUrl = function(url){
 }
 var request = function(fcDone, method, url, body, headers){
 	try{
-		sbody = handleBody(body);
-		url = handleUrl(url);
+		body = handleBody(body);
+		url = handleUrl(url);				
 		if('post' == method.toLowerCase()){
-			http.post({
-					url: url,
-					reqBody: new Buffer(sbody),
-					headers: headers ? headers : vs.headers
-				}, function (err, res) {
-				if (err) {
-					console.error(err);
-					return;
-				}	
+			var req = http.post(url);
+			headers = headers || vs.headers;
+			if(headers) req.headers(headers);
+			req.send(new Buffer(JSON.stringify(body))).end(function(res){
 				if(fcDone)
 					fcDone(res);
 			});
@@ -71,11 +68,10 @@ var request = function(fcDone, method, url, body, headers){
 		}else if('head' == method.toLowerCase()){
 			
 		}else{
-			http.get(url, function (err, res) {
-				if (err) {
-					console.error(err);
-					return;
-				}	
+			var req = http.get(url);
+			headers = headers || vs.headers;
+			if(headers) req.headers(headers);
+			req.send(new Buffer(JSON.stringify(body))).end(function(res){
 				if(fcDone)
 					fcDone(res);
 			});
@@ -98,6 +94,8 @@ var error = function(des){
 var handleFile = function(file){
 	jsonfile.readFile(file, function(err, root0) {
 		root = root0;
+		root.pass = 0;
+		root.fail = 0;
 		var compareObj = function(o, n, fcDone){
 			for(var i in n){
 				if(n[i] != o[i]){
@@ -130,12 +128,13 @@ var handleFile = function(file){
 					}
 				}
 				if(res){
-					if(api.expect.status && api.expect.status != res.code){
-						error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.code + "\"");					
+					if(api.expect.status && api.expect.status != res.statusCode){
+						error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
 						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
-					}else if(api.expect.data){
+					}
+					if(api.expect.data){
 						if(typeof(api.expect.data) == 'object'){
-							var rs = JSON.parse(res.buffer.toString());  					
+							var rs = JSON.parse(res.raw_body.toString());  					
 							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
 							if(compareObj(rs, api.expect.data)){
 								if(api.var){
@@ -143,7 +142,7 @@ var handleFile = function(file){
 					  		}
 							}
 						}else {
-							var rs = res.buffer.toString();
+							var rs = res.raw_body;
 							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
 							if(rs != api.data){
 								error("Expected: \"" + api.data+"\", Actual: \"" + rs + "\"");
@@ -155,8 +154,14 @@ var handleFile = function(file){
 				}			
 				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
 				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.duration = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop - root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start;			
-				if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined)
+				if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined){
 					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = true;
+					root.testcases[testResult.current.testcasesIndex].pass++;
+					root.pass++;
+				}else {
+					root.testcases[testResult.current.testcasesIndex].fail++;
+					root.fail++;
+				}
 				reqApi(apis, ++cur, fcDone);
 			}, api.method, api.url, api.body, api.headers);
 		}
@@ -181,12 +186,14 @@ var handleFile = function(file){
 			handleLoadTestcase(tcs, cur, function(tcs, cur){
 				log("#Testcase: " + tcs[cur].title);
 				testResult.current.testcasesIndex = cur;
+				root.testcases[testResult.current.testcasesIndex].pass = 0;
+				root.testcases[testResult.current.testcasesIndex].fail = 0;
 		  	reqApi(root.testcases[cur].api, 0, function(){
 		  		runTestCase(tcs, ++cur, fcDone);
 		  	});
 			});			
 	  }
-	  runTestCase(root.testcases, 0, function(){	  	
+	  runTestCase(root.testcases, 0, function(){	  
 	  	fs.readFile('_result.html', 'utf-8', function(err, data){
 	  		data = data.replace('$data', JSON.stringify(root));
 	  		fs.writeFile(root.project + ".result.html", data, function(err) {

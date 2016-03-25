@@ -2,8 +2,9 @@
 	"title": "API Account",
 	"api": [
 		{
+			"des": "Get list category",
 			"method": "GET",
-			"url": "http://marketplace.hugelist.org:8080/hugelist/category/getListCategory",
+			"url": "http://localhost:8080/nanacloset/category/getListCategory",
 			"var": "listCategory",
 			"expect": {
 				"status": 200,
@@ -11,8 +12,9 @@
 			}
 		},
 		{
+			"des": "Search something",
 			"method": "POST",
-			"url": "http://marketplace.hugelist.org:8080/hugelist/search/search",
+			"url": "http://localhost:8080/nanacloset/search/search",
 			"headers" : {
 				"content-type": "application/json"
 			},
@@ -22,7 +24,7 @@
 		    "keyword": "",
 		    "min_price": "",
 		    "max_price": "",
-		    "category_id": "$listCategory.baseClass[0].id",
+		    "category_id": "${listCategory.baseClass[0].id}",
 		    "subcategory_id": "",
 		    "details": [],
 		    "start": 0,

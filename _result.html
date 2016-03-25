@@ -6,33 +6,37 @@
 		<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 	</head>
 	<body ng-controller="TestResultController">
-		<h1 ng-bind="data.project"></h1>
+		<h2><small>Test result for</small> {{data.project}} <small>project</small><br/>
+		<small style="opacity: 1;"><small><span style="color: green">PASSED: {{data.pass}}</span>, <span style="color: red">FAILED: {{data.fail}}</span>, <span>TOTAL: {{data.pass + data.fail}}</span></small></small></h2>
 		<ul class="mdl-components__warning" style="color: orange;">
 			<li ng-repeat="w in data.warning" ng-bind="w"></li>
 		</ul>
 		<hr/>
 		<div ng-repeat="testcase in data.testcases">
-			<h3 ng-bind="testcase.title"></h3>
+			<h4>
+				{{testcase.title}}<br/>
+				<small><span style="color: green">PASSED: {{testcase.pass}}</span>, <span style="color: red">FAILED: {{testcase.fail}}</span>, <span>TOTAL: {{testcase.pass + testcase.fail}}</span></small>
+			</h4>
 			<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
 				<thead>
 					<tr>
-						<th class="mdl-data-table__cell--non-numeric"></th>
-						<th class="mdl-data-table__cell--non-numeric"></th>
-						<th class="mdl-data-table__cell--non-numeric">Url</th>
-						<th class="mdl-data-table__cell--non-numeric">Expect</th>
-						<th class="mdl-data-table__cell--non-numeric">Actual</th>
-						<th class="mdl-data-table__cell--non-numeric">Variable</th>
-						<th class="mdl-data-table__cell--non-numeric">Description</th>
+						<th class="mdl-data-table__cell--non-numeric">ID</th>
+						<th class="mdl-data-table__cell--non-numeric">Method<br/>& Data</th>
+						<th class="mdl-data-table__cell--non-numeric">Url pattern<small> / url actual</small><br/>API url which used for testing</th>
+						<th class="mdl-data-table__cell--non-numeric">Expected<br/>Response data</th>
+						<th class="mdl-data-table__cell--non-numeric">Actual<br/>Response data</th>
+						<th class="mdl-data-table__cell--non-numeric">Variable<br/>Stored response data</th>
+						<th class="mdl-data-table__cell--non-numeric">Error<br/>Description</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr ng-repeat="api in testcase.api" style="color: {{api.resultTest ? (api.resultTest.pass ? 'green' : 'red') : ''}}" id="{{api.id}}">
 						<th class="mdl-data-table__cell--non-numeric"><b ng-bind="api.id"></b></th>
-						<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}"><b ng-bind="api.method.toUpperCase()"></b><br/><small>( {{api.resultTest.duration}} ms )</small></td>
-						<td class="mdl-data-table__cell--non-numeric" ng-bind="api.url"></td>
-						<td class="mdl-data-table__cell--non-numeric" title="{{api.expect | json}}"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog(api.expect)"></a></td>
-						<td class="mdl-data-table__cell--non-numeric" title="{{api.actual | json}}"><a href="javascript:void(0)" ng-bind="api.actual" ng-click="showLog(api.actual)"></a></td>
-						<td class="mdl-data-table__cell--non-numeric"><b ng-bind="api.var" style="color: black;"></b></td>
+						<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}"><a href="javascript:void(0);" ng-click="showLog('Request body', api._body);"><b ng-bind="api.method.toUpperCase()"></b></a><br/><small>( {{api.resultTest.duration}} ms )</small></td>
+						<td class="mdl-data-table__cell--non-numeric"><div ng-bind="'#' + api.des"></div><b><small ng-bind="api.url"></small></b><br/><small ng-if="api._url" ng-bind="api._url" style="opacity: 0.8"></small></td>
+						<td class="mdl-data-table__cell--non-numeric" title="{{api.expect | json}}"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog('Expected data', api.expect)"></a></td>
+						<td class="mdl-data-table__cell--non-numeric" title="{{api.actual | json}}"><a href="javascript:void(0)" ng-bind="api.actual" ng-click="showLog('Actual data', api.actual)"></a></td>
+						<td class="mdl-data-table__cell--non-numeric"><a href="javascript:void(0)" ng-click="showLog('Value of ' + api.var, api.actual);"><b ng-bind="api.var"></b></a></td>
 						<td class="mdl-data-table__cell--non-numeric">
 							<div ng-bind="api.resultTest.des"></div>
 							<a href="#{{api.resultTest.impactId}}" ng-if="api.resultTest.impactId">impact to {{api.resultTest.impactId}}</a>
@@ -46,7 +50,8 @@
 		angular.module('my-app', [])
 		  .controller('TestResultController', function($scope, $http) {
 		    $scope.data = $data;
-		    $scope.showLog = function(obj){
+		    $scope.showLog = function(title, obj){
+		    	console.info(title);
 		    	console.log(obj);
 		    }
 		  });
