@@ -1,5 +1,13 @@
 {
 	"project": "What seat",
+	"env": {
+		"url": "http://localhost",
+		"port": 8080,
+		"login": {
+			"username": "user@gmail.com",
+			"password": "12345"
+		}
+	},
 	"headers" : {
 		"content-type": "application/json"
 	},

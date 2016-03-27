@@ -33,7 +33,7 @@
 					<tr ng-repeat="api in testcase.api" style="color: {{api.resultTest ? (api.resultTest.pass ? 'green' : 'red') : ''}}" id="{{api.id}}">
 						<th class="mdl-data-table__cell--non-numeric"><b ng-bind="api.id"></b></th>
 						<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}"><a href="javascript:void(0);" ng-click="showLog('Request body', api._body);"><b ng-bind="api.method.toUpperCase()"></b></a><br/><small>( {{api.resultTest.duration}} ms )</small></td>
-						<td class="mdl-data-table__cell--non-numeric"><div ng-bind="'#' + api.des"></div><b><small ng-bind="api.url"></small></b><br/><small ng-if="api._url" ng-bind="api._url" style="opacity: 0.8"></small></td>
+						<td class="mdl-data-table__cell--non-numeric"><div ng-bind="'#' + api.des"></div><b><small ng-bind="api._url ? api._url : api.url"></small></b></td>
 						<td class="mdl-data-table__cell--non-numeric" title="{{api.expect | json}}"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog('Expected data', api.expect)"></a></td>
 						<td class="mdl-data-table__cell--non-numeric" title="{{api.actual | json}}"><a href="javascript:void(0)" ng-bind="api.actual" ng-click="showLog('Actual data', api.actual)"></a></td>
 						<td class="mdl-data-table__cell--non-numeric"><a href="javascript:void(0)" ng-click="showLog('Value of ' + api.var, api.actual);"><b ng-bind="api.var"></b></a></td>
@@ -45,6 +45,7 @@
 				</tbody>
 			</table>
 		</div>
+		<br/><br/><br/>
 	</body>
 	<script type="text/javascript">
 		angular.module('my-app', [])

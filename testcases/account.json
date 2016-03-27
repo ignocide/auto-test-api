@@ -4,7 +4,7 @@
 		{
 			"des": "Get list category",
 			"method": "GET",
-			"url": "http://localhost:8080/nanacloset/category/getListCategory",
+			"url": "${env.url}:${env.port}/hugelist/category/getListCategory",
 			"var": "listCategory",
 			"expect": {
 				"status": 200,
@@ -14,7 +14,7 @@
 		{
 			"des": "Search something",
 			"method": "POST",
-			"url": "http://localhost:8080/nanacloset/search/search",
+			"url": "${env.url}:${env.port}/hugelist/search/search",
 			"headers" : {
 				"content-type": "application/json"
 			},

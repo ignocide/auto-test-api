@@ -1,6 +1,5 @@
 var http = require('unirest');
 var jsonfile = require('jsonfile');
-var file = 'testcases/main.json';
 var fs = require('fs');
 var vs = {};
 var root = {};
@@ -16,13 +15,16 @@ var testResult = {
 var handleBody = function(body){
 	if(!body) return "";
 	for(var k in body){		
-		if(typeof(body[k]) == 'string' &&  body[k].indexOf('$') == 0){
-			var regex = /\$\{([^\>]+)\}/.exec(body[k]);
-			if(regex != null){
+		if(typeof(body[k]) == 'string'){
+			while((regex = /\$\{([^\}]+)\}/.exec(body[k])) != null){
 				var varName = regex[1];				
 				try{					
 					try{
-						body[k] = eval('vs.' + varName);
+						if(/^\$\{([^\}]+)\}$/.exec(body[k]) != null)
+							body[k] = eval('vs.' + varName);
+						else{
+							body[k] = body[k].replace(/\$\{([^\}]+)\}/, eval('vs.' + varName));
+						}
 					}catch(e){
 						throw 'Variable "' + varName + '" in url "' + url + '" has problem ' + e;
 					}
@@ -37,11 +39,10 @@ var handleBody = function(body){
 	return body;
 }
 var handleUrl = function(url){
-	var regex = /\$\{([^\>]+)\}/.exec(url);	
-	if(regex != null){
+	while((regex = /\$\{([^\}]+)\}/.exec(url)) != null){		
 		var varName = regex[1];
 		try{
-			url = url.replace(/\$\{([^\>]+)\}/, eval('vs.' + varName));
+			url = url.replace(/\$\{([^\}]+)\}/, eval('vs.' + varName));
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._url = url;
 		}catch(e){
 			throw 'Variable "' + varName + '" in url "' + url + '" has problem ' + e;
@@ -51,8 +52,8 @@ var handleUrl = function(url){
 }
 var request = function(fcDone, method, url, body, headers){
 	try{
-		body = handleBody(body);
-		url = handleUrl(url);				
+		url = handleUrl(url);
+		body = handleBody(body);		
 		if('post' == method.toLowerCase()){
 			var req = http.post(url);
 			headers = headers || vs.headers;
@@ -101,7 +102,7 @@ var request = function(fcDone, method, url, body, headers){
 };
 
 var log = function(des){
-	console.error('# ' + des);
+	console.log('# ' + des);
 };
 
 var error = function(des){
@@ -109,7 +110,7 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
 
-var handleFile = function(file){
+exports.handleFile = function(file){
 	jsonfile.readFile(file, function(err, root0) {
 		root = root0;
 		root.pass = 0;
@@ -131,7 +132,7 @@ var handleFile = function(file){
 				if(fcDone) fcDone()
 				return;
 			}
-			log("Api: " + api.url);
+			console.log('> ' + api.method + ' ' + api.url);
 			testResult.current.apiIndex = cur;
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id = "N-" + testResult.current.apiUniqueId++;
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest = {};
@@ -146,9 +147,16 @@ var handleFile = function(file){
 					}
 				}
 				if(res){
-					if(api.expect.status && api.expect.status != res.statusCode){
-						error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
+					if(api.expect.status){
+						if(api.expect.status instanceof Array){
+							if(api.expect.status.indexOf(res.statusCode) == -1){
+								error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
+								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;	
+							}
+						}else if(api.expect.status != res.statusCode){
+							error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
+						}
 					}
 					if(api.expect.data){
 						if(typeof(api.expect.data) == 'object'){
@@ -184,7 +192,8 @@ var handleFile = function(file){
 			}, api.method, api.url, api.body, api.headers);
 		}
 		vs.headers = root.headers;
-	  log("Testing project " + root.project);
+		vs.env = root.env;
+		console.log('################### ' + root.project + ' ###################');
 	  var handleLoadTestcase = function(tcs, cur, fcDone){	  	
 	  	if(typeof(root.testcases[cur]) == 'object'){
 	  		if(fcDone) fcDone(tcs, cur);
@@ -202,7 +211,7 @@ var handleFile = function(file){
 				return;
 			}
 			handleLoadTestcase(tcs, cur, function(tcs, cur){
-				log("#Testcase: " + tcs[cur].title);
+				console.log("\n##### " + tcs[cur].title);
 				testResult.current.testcasesIndex = cur;
 				root.testcases[testResult.current.testcasesIndex].pass = 0;
 				root.testcases[testResult.current.testcasesIndex].fail = 0;
@@ -212,15 +221,13 @@ var handleFile = function(file){
 			});			
 	  }
 	  runTestCase(root.testcases, 0, function(){	  
-	  	fs.readFile('_result.html', 'utf-8', function(err, data){
+	  	fs.readFile('_result.template', 'utf-8', function(err, data){
 	  		data = data.replace('$data', JSON.stringify(root));
 	  		fs.writeFile(root.project + ".result.html", data, function(err) {
 			    if(err) return console.log(err);
-			    console.log("The file was saved!");
+			    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
 				}); 
 	  	});		
 	  });
 	});
 };
-
-handleFile(file);

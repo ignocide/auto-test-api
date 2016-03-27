@@ -4,14 +4,14 @@
 		{
 			"des": "Login",
 			"method": "POST",
-			"url": "http://localhost:8080/nanacloset/account/login",
+			"url": "${env.url}:${env.port}/hugelist/account/login",
 			"body": {
-			    "userName": "user@gmail.com",
-			    "passWord": "12345"
+			    "userName": "${env.login.username}",
+			    "passWord": "${env.login.password}"
 			},
 			"var": "currentUser",
 			"expect": {
-				"status": 200,
+				"status": [200, 201],
 				"data": {
 					"code": "OK"
 				}
@@ -20,7 +20,7 @@
 		{
 			"des": "Get all campaign",
 			"method": "POST",
-			"url" : "http://localhost:8080/nanacloset/campaign/getListCampaign",
+			"url" : "${env.url}:${env.port}/hugelist/campaign/getListCampaign",
 			"var": "listCampaign",
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}",
@@ -35,7 +35,7 @@
 		{
 			"des": "Get details campaign",
 			"method": "POST",
-			"url": "http://localhost:8080/nanacloset/campaign/getCampaign",
+			"url": "${env.url}:${env.port}/hugelist/campaign/getCampaign",
 			"body": {
 		    "accountAid": "${currentUser.baseClass[0].aid}",
 		    "campaignId": "${listCampaign.baseClass[0].id}"
