@@ -45,7 +45,7 @@ Readmes, how to use them in your own application can be found here:
 ### Todos
 
  - Write Testcase in [testcases/main.js] [PlTc]
- - Run ``$ npm test ``
+ - Run ``$ npm test `` or ``$ npm test {testcase.json} ``
  - View test result which extension is .result.html
 
 ### Write testcase
@@ -57,6 +57,15 @@ Main testcase: testcases/main.json
 	"headers" : { //Headers you want add in the request
 		"content-type": "application/json" 
 	},
+	"env": { // Global variable which you want to use for all testcases
+		"url": "http://localhost", // used in testcases is "${env.url}"
+		"port": 8080,
+		"login": {
+			"username": "user@gmail.com",
+			"password": "12345"
+		}
+	},
+	"status": [200, 201], // If response status is not in these, it'll be marked fail
 	"testcases": [
 		"testcases/login.json", // your testcase file
 		"testcases/account.json"

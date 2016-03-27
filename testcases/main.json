@@ -8,6 +8,7 @@
 			"password": "12345"
 		}
 	},
+	"status": [200, 201],
 	"headers" : {
 		"content-type": "application/json"
 	},

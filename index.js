@@ -101,16 +101,13 @@ var request = function(fcDone, method, url, body, headers){
 	}
 };
 
-var log = function(des){
-	console.log('# ' + des);
-};
-
 var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
 
-exports.handleFile = function(file){
+exports.execute = function(file){
+	console.log("Testcase file: " + file)
 	jsonfile.readFile(file, function(err, root0) {
 		root = root0;
 		root.pass = 0;
@@ -147,37 +144,43 @@ exports.handleFile = function(file){
 					}
 				}
 				if(res){
-					if(api.expect.status){
-						if(api.expect.status instanceof Array){
-							if(api.expect.status.indexOf(res.statusCode) == -1){
+					if(!res.error){
+						if(!api.expect.status){
+							if(root.status) api.expect.status = root.status;
+						}
+						if(api.expect.status){
+							if(api.expect.status instanceof Array){
+								if(api.expect.status.indexOf(res.statusCode) == -1){
+									error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
+									root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;	
+								}
+							}else if(api.expect.status != res.statusCode){
 								error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;	
+								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
 							}
-						}else if(api.expect.status != res.statusCode){
-							error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
-						}
-					}
-					if(api.expect.data){
-						if(typeof(api.expect.data) == 'object'){
-							var rs = JSON.parse(res.raw_body.toString());  					
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
-							if(compareObj(rs, api.expect.data)){
-								if(api.var){
-					  			vs[api.var] = rs;				  							  			
-					  		}
+						}else if(api.expect.data){
+							if(typeof(api.expect.data) == 'object'){
+								var rs = JSON.parse(res.raw_body.toString());  					
+								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
+								if(compareObj(rs, api.expect.data)){
+									if(api.var){
+						  			vs[api.var] = rs;				  							  			
+						  		}
+								}
+							}else {
+								var rs = res.raw_body;
+								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
+								if(rs != api.data){
+									error("Expected: \"" + api.data+"\", Actual: \"" + rs + "\"");
+								}else if(api.var){
+				  				vs[api.var] = rs;		  				
+				  			}
 							}
-						}else {
-							var rs = res.raw_body;
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
-							if(rs != api.data){
-								error("Expected: \"" + api.data+"\", Actual: \"" + rs + "\"");
-							}else if(api.var){
-			  				vs[api.var] = rs;		  				
-			  			}
 						}
+					}else{
+						error('Could not connect to "' + api.method + ' ' + api._url + '"');
 					}
-				}			
+				}
 				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
 				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.duration = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop - root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start;			
 				if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined){
@@ -226,6 +229,8 @@ exports.handleFile = function(file){
 	  		fs.writeFile(root.project + ".result.html", data, function(err) {
 			    if(err) return console.log(err);
 			    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
+			    var open = require('open');
+					open(root.project + '.result.html');
 				}); 
 	  	});		
 	  });

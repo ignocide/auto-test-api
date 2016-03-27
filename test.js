@@ -1,4 +1,4 @@
 var test = require('./index.js');
-var file = 'testcases/main.json';
+var file = process.argv[2] || 'testcases/main.json';
 
-test.handleFile(file);
+test.execute(file);

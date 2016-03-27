@@ -1,7 +1,7 @@
 {
-  "name": "autotestapi",
+  "name": "auto-test-api",
   "version": "1.0.0",
-  "description": "Auto test API",
+  "description": "Auto test API via testcases which are json files",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
@@ -14,7 +14,8 @@
   "author": "just4developments@gmail.com",
   "license": "ISC",
   "dependencies": {
-    "jsonfile": "^2.2.3"
+    "jsonfile": "^2.2.3",
+    "open": "0.0.5"
   },
   "devDependencies": {
     "unirest": "^0.4.2"
