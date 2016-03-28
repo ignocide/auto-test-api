@@ -1,6 +1,6 @@
 {
   "name": "auto-test-api",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Auto test API via testcases which are json files",
   "main": "index.js",
   "scripts": {
