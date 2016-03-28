@@ -1,0 +1,110 @@
+{
+	"title": "API Place",
+	"api": [		
+		{
+			"des": "Add place",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/place/addPlace",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "place": {
+		    	"title": "place 1",
+		    	"address": "address 1"
+		    }
+			},
+			"var": "newPlace",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Update place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/updatePlace",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "place": {
+		    	"itemId": "${newPlace.baseClass[0].itemId}",
+		    	"title": "place 1 updated",
+		    	"address": "address 1 updated",
+		    	"description": "des 1 updated"
+		    }
+			},
+			"apply": {
+				"newPlace": {
+					"baseClass": [
+						{
+							"title" : "place 1 updated", 
+							"address": "address 1 updated",
+							"description": "des 1 updated"
+						}
+					]
+				}
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get all place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getAllPlaces",
+			"body": {
+		    
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get user places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getUserPlaces",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get places details",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getPlaces",
+			"body": {
+		    "placesId": ["${newPlace.baseClass[0].itemId}"]
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Delete place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/deletePlace",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		}
+	]
+}

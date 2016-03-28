@@ -4,9 +4,10 @@
 		"url": "http://localhost",
 		"port": 8080,
 		"login": {
-			"username": "user@gmail.com",
-			"password": "12345"
-		}
+			"username": "tuanha",
+			"password": "123aA"
+		},
+		"uniqueId": 1
 	},
 	"status": [200, 201],
 	"headers" : {
@@ -14,6 +15,6 @@
 	},
 	"testcases": [
 		"testcases/login.json",
-		"testcases/account.json"
+		"testcases/place.json"
 	]
 }

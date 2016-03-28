@@ -11,38 +11,10 @@
 			},
 			"var": "currentUser",
 			"expect": {
-				"status": [200, 201],
+				"status": 200,
 				"data": {
 					"code": "OK"
 				}
-			}
-		},
-		{
-			"des": "Get all campaign",
-			"method": "POST",
-			"url" : "${env.url}:${env.port}/hugelist/campaign/getListCampaign",
-			"var": "listCampaign",
-			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}"
-			},
-			"expect": {
-				"data": {
-					"code": "OK"
-				}	
-			}
-		},
-		{
-			"des": "Get details campaign",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/hugelist/campaign/getCampaign",
-			"body": {
-		    "accountAid": "${currentUser.baseClass[0].aid}",
-		    "campaignId": "${listCampaign.baseClass[0].id}"
-			},
-			"expect": {
-				"status": 200,
-				"data": {}
 			}
 		}
 	]

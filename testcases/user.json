@@ -1,0 +1,164 @@
+{
+	"title": "API User",
+	"api": [		
+		{
+			"des": "Add account",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/hugelist/account/addAccount",
+			"body": {
+		    "userName": "thanh-${utils.uniqueId()}",
+		    "passWord": "123aA",
+		    "email": "${this.userName}@gmail.com",
+		    "displayName": "${this.userName}",
+		    "mobilePhone": "0973363999",
+		    "homePhone": "0973363999",
+		    "deviceId": []
+			},
+			"var": "newUser",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Login user",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/login",
+			"body": {
+			    "userName": "${newUser.baseClass[0].userName}",
+			    "passWord": "123aA"
+			},
+			"var": "currentUser",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Update account",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/updateAccount",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "userName": "${currentUser.baseClass[0].userName}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "email": "updated.${newUser.baseClass[0].email}",
+		    "displayName": "Display name",
+		    "aboutMe": "About me",
+		    "address": "Address",
+		    "deviceId": []
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get account",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/getAccount",
+			"body": {
+			  "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"userName": "${currentUser.baseClass[0].userName}"
+					  }
+					]	
+				}
+			}
+		},
+		{
+			"des": "Change password",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/changePassword",
+			"body": {
+			  "aid": "${currentUser.baseClass[0].aid}",
+		    "old_passWord": "123aA",
+		    "new_passWord": "321Aa"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Re Login user with new password",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/login",
+			"body": {
+			    "userName": "${newUser.baseClass[0].userName}",
+			    "passWord": "321Aa"
+			},
+			"var": "currentUser",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Reset password",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/resetPassword",
+			"body": {
+		    "email": "${currentUser.baseClass[0].email}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get user profile to check updating successfully",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/account/getUserProfile",
+			"body": {
+			    "userId": "${currentUser.baseClass[0].aid}"
+			},
+			"var": "currentUserProfile",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"email": "updated.${newUser.baseClass[0].email}",
+					    "displayName": "Display name",
+					    "aboutMe": "About me",
+					    "address": "Address",
+					    "deviceId": []
+					  }
+					]	
+				}
+			}
+		},
+		{
+			"des": "Logout",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/logout",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		}
+	]
+}

@@ -18,6 +18,9 @@ AutoTestAPI uses a number of open source projects to work properly:
 
 * [AngularJS] - HTML enhanced for web apps!
 * [node.js] - evented I/O for the backend
+* [unirest] - A set of lightweight HTTP libraries
+* [jsonfile] - Read/write JSON files 
+* [open] - Open a file or url in the user's preferred application
 
 And of course AutoTestAPI itself is open source with a [git-repo-url]
  on GitHub.
@@ -95,10 +98,41 @@ Your testcase: testcases/login.json
 			}
 		},
 		{
+			"des": "Add account",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/nanacloset/account/addAccount",
+			"body": {
+		    "userName": "thanh-${utils.uniqueId()}",// utils.uniqueId() will autoincrements which used for ID
+		    "passWord": "123aA",
+		    "email": "${this.userName}@gmail.com",// "this."// used by local variable which in a object
+		    "displayName": "${this.userName}",
+		    "mobilePhone": "0973363999",
+		    "homePhone": "0973363999",
+		    "deviceId": []
+			},
+			"var": "newUser",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
 			"des": "Get all campaign",
 			"method": "POST",
 			"url" : "http://localhost:8080/nanacloset/campaign/getListCampaign",
 			"var": "listCampaign",
+			"apply": {// after responsed , newPlace variable will be update something. You can update many variable
+				"currentUser": { // variable which you can update
+					"baseClass": [ // fields in variable which will be updated
+						{
+							"name" : "just 4 developments", 
+							"address": "vietnam"
+						}
+					]
+				}
+			},
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}", // used currentUser variable which was declared in the previous api testing
 		    "token": "${currentUser.baseClass[0].token}"
@@ -125,6 +159,9 @@ MIT
    [git-repo-url]: <https://github.com/just4developments/autotestapi.git>
    [node.js]: <http://nodejs.org>
    [AngularJS]: <http://angularjs.org>
+   [unirest]: <http://unirest.io/nodejs.html>
+   [jsonfile]: <https://www.npmjs.com/package/jsonfile>
+   [open]: <https://www.npmjs.com/package/open>
 
    [PlGh]:  <https://github.com/just4developments/autotestapi/blob/master/README.md>
    [PlTc]: <https://github.com/just4developments/autotestapi/blob/master/testcases/main.json>

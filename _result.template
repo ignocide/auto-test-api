@@ -26,6 +26,7 @@
 						<th class="mdl-data-table__cell--non-numeric">Expected<br/>Response data</th>
 						<th class="mdl-data-table__cell--non-numeric">Actual<br/>Response data</th>
 						<th class="mdl-data-table__cell--non-numeric">Variable<br/>Stored response data</th>
+						<th class="mdl-data-table__cell--non-numeric">Apply<br/>Update data after response done</th>
 						<th class="mdl-data-table__cell--non-numeric">Error<br/>Description</th>
 					</tr>
 				</thead>
@@ -37,6 +38,7 @@
 						<td class="mdl-data-table__cell--non-numeric" title="{{api.expect | json}}"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog('Expected data', api.expect)"></a></td>
 						<td class="mdl-data-table__cell--non-numeric" title="{{api.actual | json}}"><a href="javascript:void(0)" ng-bind="api.actual" ng-click="showLog('Actual data', api.actual)"></a></td>
 						<td class="mdl-data-table__cell--non-numeric"><a href="javascript:void(0)" ng-click="showLog('Value of ' + api.var, api.actual);"><b ng-bind="api.var"></b></a></td>
+						<td class="mdl-data-table__cell--non-numeric"><a href="javascript:void(0)" ng-click="showLog('Apply value', api.applies);"><b ng-bind="api.applies"></b></a></td>
 						<td class="mdl-data-table__cell--non-numeric">
 							<div ng-bind="api.resultTest.des"></div>
 							<a href="#{{api.resultTest.impactId}}" ng-if="api.resultTest.impactId">impact to {{api.resultTest.impactId}}</a>

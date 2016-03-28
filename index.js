@@ -12,30 +12,43 @@ var testResult = {
 	}
 };
 
-var handleBody = function(body){
+var initUtilsVariable = function(){
+	vs.utils = {
+		uniqueId: function() {
+			return new Date().getTime();
+		}
+	}
+}
+
+var handleBody = function(body, fcImpact){
 	if(!body) return "";
 	for(var k in body){		
-		if(typeof(body[k]) == 'string'){
+		if(typeof(body[k]) == 'string'){			
 			while((regex = /\$\{([^\}]+)\}/.exec(body[k])) != null){
 				var varName = regex[1];				
-				try{					
-					try{
-						if(/^\$\{([^\}]+)\}$/.exec(body[k]) != null)
+				try{						
+					if(/^\$\{([^\}]+)\}$/.exec(body[k]) != null){
+						if(varName.indexOf('this.') == 0){
+							body[k] = body[varName.substr(5)];
+						} else {
 							body[k] = eval('vs.' + varName);
-						else{
+						}
+					} else {
+						if(varName.indexOf('this.') == 0){
+							body[k] = body[k].replace(/\$\{([^\}]+)\}/, body[varName.substr(5)]);
+						} else{
 							body[k] = body[k].replace(/\$\{([^\}]+)\}/, eval('vs.' + varName));
 						}
-					}catch(e){
-						throw 'Variable "' + varName + '" in url "' + url + '" has problem ' + e;
 					}
 				}catch(e){
-					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.impactId = impactVariable[varName.split('.')[0]];
-					throw "Variable " + varName + " was not resolved";				
+					if(fcImpact) fcImpact(impactVariable[varName.split('.')[0]]);
+					throw 'Variable "' + varName + '" was not resolved: ' + e;
 				}
 			}
-		}		
+		}else{
+			body[k] = handleBody(body[k]);
+		}
 	}	
-	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._body = body;
 	return body;
 }
 var handleUrl = function(url){
@@ -53,7 +66,10 @@ var handleUrl = function(url){
 var request = function(fcDone, method, url, body, headers){
 	try{
 		url = handleUrl(url);
-		body = handleBody(body);		
+		body = handleBody(body, function(impactId){
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.impactId = impactId;
+		});	
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._body = body;
 		if('post' == method.toLowerCase()){
 			var req = http.post(url);
 			headers = headers || vs.headers;
@@ -106,7 +122,7 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
 
-exports.execute = function(file){
+exports.execute = function(file){	
 	console.log("Testcase file: " + file)
 	jsonfile.readFile(file, function(err, root0) {
 		root = root0;
@@ -114,11 +130,11 @@ exports.execute = function(file){
 		root.fail = 0;
 		var compareObj = function(o, n, fcDone){
 			for(var i in n){
-				if(n[i] != o[i]){
-					error("Expected: " + i + " = \"" + n[i]+"\" #" + JSON.stringify(n) + ", Actual: " + i + " = \"" + o[i] + "\" #" + JSON.stringify(o));
-					return false;
-				}else if(typeof(n[i]) == 'object'){
+				if(typeof(n[i]) == 'object'){
 					return compareObj(o[i], n[i]);
+				}else if(n[i] != o[i]){
+					error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+					return false;
 				}
 			}
 			return true;
@@ -136,12 +152,11 @@ exports.execute = function(file){
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start = new Date().getTime();
 			request(function(res){
 				if(api.var) {
-					if(!impactVariable[api.var])
-						impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;
-					else{
+					if(impactVariable[api.var]) {
 						if(!root.warning) root.warning = [];
 						root.warning.push('Duplicate variable ' + api.var);
 					}
+					impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;					
 				}
 				if(res){
 					if(!res.error){
@@ -158,9 +173,11 @@ exports.execute = function(file){
 								error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
 								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
 							}
-						}else if(api.expect.data){
+						}
+						if(api.expect.data){
 							if(typeof(api.expect.data) == 'object'){
-								var rs = JSON.parse(res.raw_body.toString());  					
+								api.expect.data = handleBody(api.expect.data);
+								var rs = JSON.parse(res.raw_body.toString());
 								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
 								if(compareObj(rs, api.expect.data)){
 									if(api.var){
@@ -171,14 +188,38 @@ exports.execute = function(file){
 								var rs = res.raw_body;
 								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
 								if(rs != api.data){
-									error("Expected: \"" + api.data+"\", Actual: \"" + rs + "\"");
+									error("Expected: \"" + api.data + "\", Actual: \"" + rs + "\"");
 								}else if(api.var){
 				  				vs[api.var] = rs;		  				
 				  			}
 							}
+						}		
+						var updateDeepObject = function(old, update){
+							for(var k in update){
+								if(typeof(update[k]) == 'object'){
+									updateDeepObject(old[k], update[k]);
+								}else{
+									old[k] = update[k];
+								}
+							}
+							return old;
+						};
+						if(api.apply){
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies = [];
+							for(var o in api.apply){
+								var obj = {varName: o};
+								obj.oldValue = JSON.parse(JSON.stringify(vs[o]));
+								var objChange = {};
+								for(f in api.apply[o]){
+									objChange[f] = handleBody(api.apply[o][f]);
+								}								
+								vs[o] = updateDeepObject(vs[o], objChange);								
+								obj.newValue = vs[o];
+								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies.push(obj);
+							}
 						}
 					}else{
-						error('Could not connect to "' + api.method + ' ' + api._url + '"');
+						error('Error ' + res.statusCode + ': "' + res.statusMessage + '"');
 					}
 				}
 				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
@@ -224,10 +265,11 @@ exports.execute = function(file){
 			});			
 	  }
 	  runTestCase(root.testcases, 0, function(){	  
-	  	fs.readFile('_result.template', 'utf-8', function(err, data){
+	  	fs.readFile(__dirname + '/_result.template', 'utf-8', function(err, data){
+	  		if(err) return console.error(err);
 	  		data = data.replace('$data', JSON.stringify(root));
 	  		fs.writeFile(root.project + ".result.html", data, function(err) {
-			    if(err) return console.log(err);
+			    if(err) return console.error(err);
 			    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
 			    var open = require('open');
 					open(root.project + '.result.html');
@@ -236,3 +278,5 @@ exports.execute = function(file){
 	  });
 	});
 };
+
+initUtilsVariable();
