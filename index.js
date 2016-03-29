@@ -72,7 +72,6 @@ var request = function(fcDone, method, url, body, headers){
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._body = body;
 		if('post' == method.toLowerCase()){
 			var req = http.post(url);
-			headers = headers || vs.headers;
 			if(headers) req.headers(headers);
 			req.send(new Buffer(JSON.stringify(body))).end(function(res){
 				if(fcDone)
@@ -111,7 +110,7 @@ var request = function(fcDone, method, url, body, headers){
 					fcDone(res);
 			});
 		}
-	}catch(e){
+	}catch(e){		
 		error(e);
 		if(fcDone) fcDone();
 	}
@@ -122,119 +121,125 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
 
+var compareObj = function(o, n, fcDone){
+	for(var i in n){
+		if(typeof(n[i]) == 'object'){
+			return compareObj(o[i], n[i]);
+		}else if(n[i] != o[i]){
+			error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+			return false;
+		}
+	}
+	return true;
+}
+
+var reqApi = function(apis, cur, fcDone){
+	var api = apis[cur];
+	if(cur >= apis.length){
+		if(fcDone) fcDone()
+		return;
+	}
+	console.log('> ' + api.method + ' ' + api.url);
+	testResult.current.apiIndex = cur;
+	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id = "N-" + testResult.current.apiUniqueId++;
+	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest = {};
+	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start = new Date().getTime();
+	if(!root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers)
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers = vs.headers;
+	request(function(res){
+		if(api.var) {
+			if(impactVariable[api.var]) {
+				if(!root.warning) root.warning = [];
+				root.warning.push('Duplicate variable ' + api.var + " - ID: " + api.id);
+			}
+			impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;					
+		}
+		if(res){
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {html: res.raw_body};
+			if(!res.error){
+				if(!api.expect.status){
+					if(root.status) api.expect.status = root.status;
+				}
+				if(api.expect.status){
+					if(api.expect.status instanceof Array){
+						if(api.expect.status.indexOf(res.statusCode) == -1){
+							error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;	
+						}
+					}else if(api.expect.status != res.statusCode){
+						error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
+					}
+				}
+				if(api.expect.data){
+					if(typeof(api.expect.data) == 'object'){
+						api.expect.data = handleBody(api.expect.data);
+						var rs = JSON.parse(res.raw_body.toString());
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
+						if(compareObj(rs, api.expect.data)){
+							if(api.var){
+				  			vs[api.var] = rs;				  							  			
+				  		}
+						}
+					}else {
+						var rs = res.raw_body;
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
+						if(rs != api.data){
+							error("Expected: \"" + api.data + "\", Actual: \"" + rs + "\"");
+						}else if(api.var){
+		  				vs[api.var] = rs;		  				
+		  			}
+					}
+				}		
+				var updateDeepObject = function(old, update){
+					for(var k in update){
+						if(typeof(update[k]) == 'object'){
+							updateDeepObject(old[k], update[k]);
+						}else{
+							old[k] = update[k];
+						}
+					}
+					return old;
+				};
+				if(api.apply){
+					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies = [];
+					for(var o in api.apply){
+						var obj = {varName: o};
+						obj.oldValue = JSON.parse(JSON.stringify(vs[o]));
+						var objChange = {};
+						for(f in api.apply[o]){
+							objChange[f] = handleBody(api.apply[o][f]);
+						}								
+						vs[o] = updateDeepObject(vs[o], objChange);								
+						obj.newValue = vs[o];
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies.push(obj);
+					}
+				}
+			}else{						
+				error('Error ' + res.statusCode + ': "' + res.statusMessage + '"');
+			}
+		}
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.duration = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop - root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start;			
+		if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined){
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = true;
+			root.testcases[testResult.current.testcasesIndex].pass++;
+			root.pass++;
+		}else {
+			root.testcases[testResult.current.testcasesIndex].fail++;
+			root.fail++;
+		}
+		reqApi(apis, ++cur, fcDone);
+	}, api.method, api.url, api.body, api.headers);
+}
+
 exports.execute = function(file){	
 	console.log("Testcase file: " + file)
 	jsonfile.readFile(file, function(err, root0) {
 		root = root0;
 		root.pass = 0;
 		root.fail = 0;
-		var compareObj = function(o, n, fcDone){
-			for(var i in n){
-				if(typeof(n[i]) == 'object'){
-					return compareObj(o[i], n[i]);
-				}else if(n[i] != o[i]){
-					error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
-					return false;
-				}
-			}
-			return true;
-		}
-		var reqApi = function(apis, cur, fcDone){
-			var api = apis[cur];
-			if(cur >= apis.length){
-				if(fcDone) fcDone()
-				return;
-			}
-			console.log('> ' + api.method + ' ' + api.url);
-			testResult.current.apiIndex = cur;
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id = "N-" + testResult.current.apiUniqueId++;
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest = {};
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start = new Date().getTime();
-			request(function(res){
-				if(api.var) {
-					if(impactVariable[api.var]) {
-						if(!root.warning) root.warning = [];
-						root.warning.push('Duplicate variable ' + api.var);
-					}
-					impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;					
-				}
-				if(res){
-					if(!res.error){
-						if(!api.expect.status){
-							if(root.status) api.expect.status = root.status;
-						}
-						if(api.expect.status){
-							if(api.expect.status instanceof Array){
-								if(api.expect.status.indexOf(res.statusCode) == -1){
-									error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-									root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;	
-								}
-							}else if(api.expect.status != res.statusCode){
-								error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
-							}
-						}
-						if(api.expect.data){
-							if(typeof(api.expect.data) == 'object'){
-								api.expect.data = handleBody(api.expect.data);
-								var rs = JSON.parse(res.raw_body.toString());
-								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
-								if(compareObj(rs, api.expect.data)){
-									if(api.var){
-						  			vs[api.var] = rs;				  							  			
-						  		}
-								}
-							}else {
-								var rs = res.raw_body;
-								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
-								if(rs != api.data){
-									error("Expected: \"" + api.data + "\", Actual: \"" + rs + "\"");
-								}else if(api.var){
-				  				vs[api.var] = rs;		  				
-				  			}
-							}
-						}		
-						var updateDeepObject = function(old, update){
-							for(var k in update){
-								if(typeof(update[k]) == 'object'){
-									updateDeepObject(old[k], update[k]);
-								}else{
-									old[k] = update[k];
-								}
-							}
-							return old;
-						};
-						if(api.apply){
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies = [];
-							for(var o in api.apply){
-								var obj = {varName: o};
-								obj.oldValue = JSON.parse(JSON.stringify(vs[o]));
-								var objChange = {};
-								for(f in api.apply[o]){
-									objChange[f] = handleBody(api.apply[o][f]);
-								}								
-								vs[o] = updateDeepObject(vs[o], objChange);								
-								obj.newValue = vs[o];
-								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies.push(obj);
-							}
-						}
-					}else{
-						error('Error ' + res.statusCode + ': "' + res.statusMessage + '"');
-					}
-				}
-				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
-				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.duration = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop - root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start;			
-				if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined){
-					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = true;
-					root.testcases[testResult.current.testcasesIndex].pass++;
-					root.pass++;
-				}else {
-					root.testcases[testResult.current.testcasesIndex].fail++;
-					root.fail++;
-				}
-				reqApi(apis, ++cur, fcDone);
-			}, api.method, api.url, api.body, api.headers);
-		}
+		
 		vs.headers = root.headers;
 		vs.env = root.env;
 		console.log('################### ' + root.project + ' ###################');
@@ -271,8 +276,31 @@ exports.execute = function(file){
 	  		fs.writeFile(root.project + ".result.html", data, function(err) {
 			    if(err) return console.error(err);
 			    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
+
+			    require('http').createServer(function(req, res){			    	
+			      if(req.url == '/result'){
+							res.writeHead(200, {
+			         	'Content-Type': 'application/json',
+			         	'Access-Control-Allow-Origin': '*',
+			         	'Access-Control-Request-Method': 'GET'
+			      	});
+			      	res.end(JSON.stringify(root));
+			      }else {
+			      	var regex = req.url.toString().match(/\/request\/([^\/]+)\/([^\/]+)/);
+			      	testResult.current.testcasesIndex = parseInt(regex[1]);
+			      	reqApi(root.testcases[testResult.current.testcasesIndex].api, parseInt(regex[2]), function(){
+					  		res.writeHead(200, {
+			         	'Content-Type': 'application/json',
+			         	'Access-Control-Allow-Origin': '*',
+			         	'Access-Control-Request-Method': 'GET'
+				      	});
+				      	res.end(JSON.stringify(root));
+					  	});
+			      }
+			    }).listen(61188);
+			    console.log('Start server at 127.0.0.1:61188');
 			    var open = require('open');
-					open(root.project + '.result.html');
+			    open(root.project + '.result.html');
 				}); 
 	  	});		
 	  });
