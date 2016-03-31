@@ -21,9 +21,9 @@ var initUtilsVariable = function(){
 }
 
 var handleBody = function(body, fcImpact){
-	if(!body) return "";
+	if(body == undefined || body == null) return {};
 	for(var k in body){		
-		if(typeof(body[k]) == 'string'){			
+		if(typeof(body[k]) == 'string'){
 			while((regex = /\$\{([^\}]+)\}/.exec(body[k])) != null){
 				var varName = regex[1];				
 				try{						
@@ -121,13 +121,61 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
 
-var compareObj = function(o, n, fcDone){
+var compareObj = function(o, n, fcDone){	
 	for(var i in n){
-		if(typeof(n[i]) == 'object'){
-			return compareObj(o[i], n[i]);
-		}else if(n[i] != o[i]){
-			error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
-			return false;
+		var g = i.match(/[!:]+/);
+		if(g != null){
+			var io = i.substr(0, i.indexOf(g[0]));
+			if(n[i] instanceof Array){				
+				if(g[0] == ':'){
+					if(o[io] instanceof Array){
+						for(var j in o[io]){
+							if(n[i].indexOf(o[io][j]) == -1){
+								error("Expected: " + io + " in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+								return false;
+							}	
+						}
+					}else{
+						if(n[i].indexOf(o[io]) == -1){
+							error("Expected: " + io + " in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+							return false;
+						}
+					}
+				}else if(g[0] == '!:'){
+					if(o[io] instanceof Array){
+						for(var j in o[io]){
+							if(n[i].indexOf(o[io][j]) != -1){
+								error("Expected: " + io + " not in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+								return false;
+							}	
+						}
+					}else{
+						if(n[i].indexOf(o[io]) != -1){
+							error("Expected: " + io + " not in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+							return false;
+						}
+					}
+				}			
+			}else if(n[i] instanceof Object){
+				return compareObj(o[i], n[i]);
+			}else {
+				if(g[0] == '!'){		
+					console.log(n[i] + ":" + o[io]);			
+					if(n[i] == o[io]){
+						error("Expected: " + io + " != \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+						return false;
+					}
+				}
+			}
+		}else{
+			if(n[i] instanceof Object){
+				return compareObj(o[i], n[i]);
+			}else{
+				if(n[i] != o[i]){
+					error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+					return false;
+				}
+			}
 		}
 	}
 	return true;
