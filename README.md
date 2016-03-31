@@ -123,24 +123,27 @@ Your testcase: testcases/login.json
 			"method": "POST",
 			"url" : "http://localhost:8080/nanacloset/campaign/getListCampaign",
 			"var": "listCampaign",
-			"apply": {// after responsed , newPlace variable will be update something. You can update many variable
-				"currentUser": { // variable which you can update
-					"baseClass": [ // fields in variable which will be updated
-						{
-							"name" : "just 4 developments", 
-							"address": "vietnam"
-						}
-					]
-				}
-			},
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}", // used currentUser variable which was declared in the previous api testing
 		    "token": "${currentUser.baseClass[0].token}"
 			},
 			"expect": {
+				"status": [200, 201], // http response status code must be in 200 or 201 -> passed
 				"data": {
-					"code": "OK"
+					"code:": ["OK", "NOT_FOUND"], // Check code value in response data must be IN "OK" or "NOT_FOUND". Syntax: "[FIELD_NAME]:"
+					"campaign": {
+						"status!:": [1, 2], // Check status value in response data must NOT be IN 1 or 2. Syntax: "[FIELD_NAME]!:"
+						"name!": "Restaurants" // Check name value in response data must NOT be "Restaurants". Syntax: "[FIELD_NAME]!"
+					}
 				}	
+			},
+			"apply": {// set new value for variables. After responsed , currentUser variable will be updated something. You can update many variables
+				"currentUser": { // It's variable which was declared in the testcase API Login
+					"baseClass": [// Property in currentUser variable
+						"name": "name_after_updated", // set name for currentUser variable
+						"email": "${this.name}@gmail.com" // It's "name_after_updated@gmail.com". "this" will be reference the a object which contains it
+					]
+				}
 			}
 		}
 	]
