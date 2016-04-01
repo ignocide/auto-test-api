@@ -10,10 +10,21 @@
 			    "passWord": "${env.login.password}"
 			},
 			"var": "currentUser",
+			"apply": {
+				"currentUser": {
+					"baseClass": [
+						{
+							"id": "0631ef33-8952-4cc7-bc31-5053f5b935e8",
+							"aid": "0631ef33-8952-4cc7-bc31-5053f5b935e8", 
+							"token": "861dade60251b5019d5079107662eae6"
+						}
+					]
+				}
+			},
 			"expect": {
 				"status": 200,
 				"data": {
-					"code": "OK"
+					"code!": "NG"
 				}
 			}
 		}

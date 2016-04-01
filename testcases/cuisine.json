@@ -1,0 +1,28 @@
+{
+	"title": "API Cuisine",
+	"api": [		
+		{
+			"des": "Get list cuisine",
+			"method": "GET",
+			"url": "${env.url}:${env.port}/whatseat/cuisine/getListCuisines",
+			"var": "listCuisines",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get cuisine details",
+			"method": "GET",
+			"url": "${env.url}:${env.port}/whatseat/cuisine/getCuisineDetails",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		}		
+	]
+}

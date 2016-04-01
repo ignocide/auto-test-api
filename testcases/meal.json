@@ -1,6 +1,6 @@
 {
 	"title": "API Meals",
-	"api": [		
+	"api": [
 		{
 			"des": "Add meal",
 			"method": "PUT",
@@ -9,14 +9,284 @@
 		    "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}",
 		    "meal": {
-		    	"title": "meal 1"
+		    	"cuisineId": "${listCuisines.baseClass[0].itemId}",
+		    	"enableReview": 0,
+					"itemDescription": "Meal description",
+					"photos": [
+						"6bffa660-1f7d- 4a4f-816c- 92597c55db89/1216697e-26a2- 41a5-beca-c37d5f01b7e7/v1.jpg",
+						"6bffa660-1f7d- 4a4f-816c- 92597c55db89/481e8e6d-6096- 4cb5-b003-4ca31ab48449/v2.jpg"
+					],
+					"title": "Meal title",
+					"place": "${listPlaces.baseClass[0]}"
 		    }
 			},
-			"var": "newUser",
+			"var": "newMeal",
 			"expect": {
 				"status": 200,
 				"data": {
-					"code": "OK"
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Update meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/updateMeal",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "meal": {
+		    	"itemId": "${newMeal.baseClass[0].itemId}",
+		    	"enableReview": 1,
+					"itemDescription": "Meal description updated",
+					"photos": [
+						"6bffa660-1f7d- 4a4f-816c- 92597c55db89/1216697e-26a2- 41a5-beca-c37d5f01b7e7/v1.jpg",
+						"v1-updated.jpg",
+						"v2-updated.jpg"
+					],
+					"title": "Meal title updated",
+					"place": {
+			    	"title": "place of meal",
+			    	"address": "address of meal"
+			    }
+		    }
+			},
+			"var": "newMeal",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG",
+					"baseClass": [
+						{
+					    "aid": "${currentUser.baseClass[0].aid}",
+				    	"itemId": "${newMeal.baseClass[0].itemId}",
+				    	"enableReview": 1,
+							"itemDescription": "Meal description updated",
+							"photos": [
+								"6bffa660-1f7d- 4a4f-816c- 92597c55db89/1216697e-26a2- 41a5-beca-c37d5f01b7e7/v1.jpg",
+								"v1-updated.jpg",
+								"v2-updated.jpg"
+							],
+							"title": "Meal title updated",
+							"place": {
+					    	"title": "place of meal",
+					    	"address": "address of meal"
+					    }
+				   }
+					]
+				}
+			}
+		},
+		{
+			"des": "Get all meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getAllMeals",
+			"var": "listMeals",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get user meals",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getUserMeals",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get meals",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getMeals",
+			"body": {
+				"mealsId": [
+					"${newMeal.baseClass[0].itemId}"
+				]
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get detailed meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getDetailedMeal",
+			"body": {
+				"mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get detailed meals",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getDetailedMeals",
+			"body": {
+				"mealsId": [
+					"${newMeal.baseClass[0].itemId}"
+				]
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Search meals",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/search",
+			"body": {
+				"keyword": "meal"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Add review",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/addReview",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "mealId": "${listMeals.baseClass[0].itemId}",
+		    "rating": 3, 
+		    "review": "My comment"
+			},
+			"var": "newMealReview",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Update review",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/updateReview",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "itemId": "${newMealReview.baseClass[0].itemId}",
+		    "rating": 4, 
+		    "review": "My comment updated"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG",
+					"baseClass": [
+						{
+							"rating": 4,
+							"review": "My comment updated"
+						}
+					]
+				}
+			},
+			"apply": {
+				"newMealReview": {
+					"baseClass": [
+						{
+							"rating": 4,
+							"review": "My comment updated"
+						}
+					]
+				}
+			}
+		},
+		{
+			"des": "Get all review meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/getAllReviews",
+			"body": {
+				"mealId": "${newMealReview.baseClass[0].itemId}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Delete review meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/deleteReview",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+				"itemId": "${newMealReview.baseClass[0].itemId}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get all meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getAllMeals",
+			"var": "listMeals",
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Delete review by meal ID",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/deleteReviewByOId",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+				"objectId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Delete meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/deleteMeal",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"status": 200,
+				"data": {
+					"code!": "NG"
 				}
 			}
 		}

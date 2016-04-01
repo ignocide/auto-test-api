@@ -17,7 +17,7 @@
 			"expect": {
 				"status": 200,
 				"data": {
-					"code": "OK"
+					"code!": "NG"
 				}
 			}
 		},
@@ -48,7 +48,7 @@
 			},
 			"expect": {
 				"data": {
-					"code": "OK"
+					"code!": "NG"
 				}
 			}
 		},
@@ -59,9 +59,10 @@
 			"body": {
 		    
 			},
+			"var": "listPlaces",
 			"expect": {
 				"data": {
-					"code": "OK"
+					"code!": "NG"
 				}
 			}
 		},
@@ -74,12 +75,12 @@
 			},
 			"expect": {
 				"data": {
-					"code": "OK"
+					"code!": "NG"
 				}
 			}
 		},
 		{
-			"des": "Get places details",
+			"des": "Get places",
 			"method": "POST",
 			"url": "${env.url}:${env.port}/whatseat/place/getPlaces",
 			"body": {
@@ -87,7 +88,151 @@
 			},
 			"expect": {
 				"data": {
-					"code": "OK"
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get place details",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getDetailedPlace",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},		
+		{
+			"des": "Get place detail",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getDetailedPlaces",
+			"body": {
+		    "placesId": ["${newPlace.baseClass[0].itemId}"]
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Search places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/searchPlaces",
+			"body": {
+		    "keyword": "place 1"
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Add review place",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/review/place/addReview",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "placeId": "${newPlace.baseClass[0].itemId}",
+		    "rating": 3,
+		    "review": "Review place 0"
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Add review place",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/review/place/addReview",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "placeId": "${newPlace.baseClass[0].itemId}",
+		    "rating": 1,
+		    "review": "Review place 1"
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get all review places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/getAllReviews",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},
+			"var": "newReview",
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Update review place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/updateReview",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "itemId": "${newReview.baseClass[0].itemId}",
+		    "rating": 4,
+		    "review": "Review place updated"
+			},
+			"apply": {
+				"newReview" : {
+					"baseClass" : [
+						{
+							"review": "Review place updated",
+							"rating": 4
+						}
+					]
+				}
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Delete review places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/deleteReview",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "itemId": "${newReview.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Delete reviews by places id",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/deleteReviewByOId",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "objectId": "${newPlace.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
 				}
 			}
 		},
@@ -102,7 +247,21 @@
 			},
 			"expect": {
 				"data": {
-					"code": "OK"
+					"code!": "NG"
+				}
+			}
+		},
+		{
+			"des": "Get all place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getAllPlaces",
+			"body": {
+		    
+			},
+			"var": "listPlaces",
+			"expect": {
+				"data": {
+					"code!": "NG"
 				}
 			}
 		}
