@@ -1,0 +1,109 @@
+<html ng-app="my-app">
+	<head>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min.js"></script>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
+		<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+		<style type="text/css">
+			td {
+				vertical-align: top !important;
+			}
+			.jsonView {
+				list-style: none;
+				padding: 0;
+				margin: 0;				
+			}
+			.jsonView > li {
+				list-style: square;
+				margin-left: 30px;
+				padding: 2px 5px 2px 0px;
+			}
+			pre {
+			  color: #FDC868;
+  			background-color: #000;
+  			border-radius: 5px;
+				padding: 5px;
+			}	
+			json-viewer b {
+				color: #6FBBA2;
+			}
+			json-viewer span {
+				color: #FDC868;
+			}
+			json-viewer > ul {
+				color: #fff;
+  			background-color: #000;
+  			border-radius: 5px;
+			}
+		</style>
+	</head>
+	<body ng-controller="TestResultController">
+		<h2><small>Specific document for </small> {{data.project}} <small>APIs</small><br/></h2>
+		<ul class="mdl-components__warning" style="color: orange;">
+			<li ng-repeat="w in data.warning" ng-bind="w"></li>
+		</ul>
+		<hr/>
+		<div ng-repeat="testcase in data.testcases">
+			<h4>{{testcase.title}}</h4>
+			<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+				<thead>
+					<tr>
+						<th class="mdl-data-table__cell--non-numeric">Name</th>
+						<th class="mdl-data-table__cell--non-numeric">Method</th>
+						<th class="mdl-data-table__cell--non-numeric">Url</th>
+						<th class="mdl-data-table__cell--non-numeric">Input data (Request data)</th>
+						<th class="mdl-data-table__cell--non-numeric">Output data (Response data)</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="api in testcase.api">
+						<td class="mdl-data-table__cell--non-numeric"><h6>{{api.des}}</h6></td>
+						<td class="mdl-data-table__cell--non-numeric"><a><h6 ng-bind="api.method.toUpperCase()"></h6></a></td>
+						<td class="mdl-data-table__cell--non-numeric"><a><h6 ng-bind="api._url ? api._url : api.url"></h6></a></td>
+						<td class="mdl-data-table__cell--non-numeric">
+							<h6>Structure</h6>
+							<pre class="mbox">{{api['body'] | json}}</pre>
+							<h6>Description</h6>
+							<json-viewer data="api['@body']" class="mbox"></json-viewer>							
+						</td>
+						<td class="mdl-data-table__cell--non-numeric">
+							<h6>Structure</h6>
+							<pre class="mbox">{{api['expect'] | json}}</pre>
+							<h6>Description</h6>
+							<json-viewer data="api['@expect']" class="mbox"</json-viewer>							
+						</td>						
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<br/><br/><br/>
+	</body>
+	<script type="text/javascript">
+		angular.module('my-app', [])
+		  .controller('TestResultController', function($scope, $http) {
+		    $scope.data = $data
+		  })
+		  .directive('jsonViewer', function() {
+			  return {
+			    restrict: 'E',
+			    transclude: true,
+			    scope: {
+			    	data: '='
+			    },
+			    controller: ['$scope', function($scope) {			    	
+			    	$scope.isKey = function(k){
+			    		return k.indexOf('@') != 0;
+			    	}
+			    }],
+			    template: 
+			    	'<ul ng-if="data" class="jsonView">\
+			    		<li ng-repeat="(key, value) in data" ng-if="isKey(key)">\
+								<a>{{key}}</a> <b>({{value["@type"]}})</b> <span>{{value["@des"]}}</span>\
+								<json-viewer data="value"></json-viewer>\
+							</li>\
+			    	</ul>\
+			    	'
+			  };
+			});
+	</script>
+</html>

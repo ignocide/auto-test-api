@@ -4,6 +4,7 @@ Used to test APIs via testcases files which is formated by json.
 
 Some features:
 
+  - Export to specific APIs document which's extension is .doc.html
   - Auto play test via npm, you can integrate into jenkin...
   - Use variable to store response data which will be reuse for the testcases 
   - See variable value via console log in browser by click on variable which you want to debug
@@ -48,8 +49,14 @@ Readmes, how to use them in your own application can be found here:
 ### Todos
 
  - Write Testcase in [testcases/main.js] [PlTc]
- - Run ``$ npm test `` or ``$ npm test {testcase.json} ``
+ 
+For testing:
+ - Run ``$ npm run test `` or ``$ npm run test {testcase.json} ``
  - View test result which extension is .result.html
+
+For export special APIs document:
+ - Run ``$ npm run doc `` or ``$ npm run doc {testcase.json} ``
+ - View special APIs document which extension is .doc.html 
 
 ### Write testcase
 Main testcase: testcases/main.json
@@ -149,6 +156,45 @@ Your testcase: testcases/login.json
 	]
 }
 ```
+
+### Format to export document for APIs:
+
+Your testcase: testcases/login.json
+```
+    {
+	"title": "API Login",
+	"api": [
+		{
+			"des": "Login",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/login",
+			"body": {
+		        "userName": "${env.login.username}", ///(string) account id which you want to sent to server        
+		        "passWord": "${env.login.password}" ///(string) account id which you want to sent to server        
+			},
+			"var": "currentUser",
+			"expect": {
+				"status": 200,///(number) http status
+				"data": { ///(object) response data from server
+					"code!": "NG"	///(string) response code
+				}
+			}
+		}
+	]
+}
+```
+
+JUST declare it in "body" tag (request data) and "expect" tag (response data) in "api" tag.
+
+```
+    "userName": "${env.login.username}", ///(string) account id which you want to sent to server
+    
+    In that: 
+    /// : symbol to declare doc config
+    (string) : symbol to declare variable type which can be anything like (integer, number, string, object ...)
+    account id...: field description
+```
+
 
 License
 ----

@@ -6,8 +6,8 @@
 			"method": "POST",
 			"url": "${env.url}:${env.port}/hugelist/account/login",
 			"body": {
-			    "userName": "${env.login.username}",
-			    "passWord": "${env.login.password}"
+		    "userName": "${env.login.username}", ///(string) user email
+		    "passWord": "${env.login.password}" ///(string) user password
 			},
 			"var": "currentUser",
 			"apply": {
@@ -22,9 +22,9 @@
 				}
 			},
 			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
+				"status": 200,///(number) http status
+				"data": { ///(object) response data from server
+					"code!": "NG"	///(string) response code
 				}
 			}
 		}

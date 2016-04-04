@@ -1,5 +1,4 @@
 var http = require('unirest');
-var jsonfile = require('jsonfile');
 var fs = require('fs');
 var vs = {};
 var root = {};
@@ -120,6 +119,30 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
+var preHandleBody = function(data, dox) {	
+	var doc = dox ? dox : {};
+	var body = {};	
+	for(var i in data){					
+		var key = i;
+		if(typeof(i) == 'string'){
+			if(i.indexOf('///') != -1){
+				var key = key.substr(0, key.indexOf('///'));
+				var bd = i.match(/\/\/\/\((.*?)\)\s*(.*)/);					
+				doc[key.match(/\w+/)] = {
+					'@type': bd[1],
+					'@des': bd[2]
+				};
+			}
+		}
+		body[key] = data[i];
+		if(data[i] instanceof Object){
+			var ds = preHandleBody(body[key], doc[key]);
+			body[key] = ds[0];
+			doc[key.match(/\w+/)] = ds[1];
+		}
+	}	
+	return [body, doc];
+};
 
 var compareObj = function(o, n, fcDone){	
 	for(var i in n){
@@ -160,7 +183,6 @@ var compareObj = function(o, n, fcDone){
 				return compareObj(o[i], n[i]);
 			}else {
 				if(g[0] == '!'){		
-					console.log(n[i] + ":" + o[io]);			
 					if(n[i] == o[io]){
 						error("Expected: " + io + " != \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
 						return false;
@@ -186,7 +208,7 @@ var reqApi = function(apis, cur, fcDone){
 	if(cur >= apis.length){
 		if(fcDone) fcDone()
 		return;
-	}
+	}	
 	console.log('> ' + api.method + ' ' + api.url);
 	testResult.current.apiIndex = cur;
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id = "N-" + testResult.current.apiUniqueId++;
@@ -194,6 +216,10 @@ var reqApi = function(apis, cur, fcDone){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start = new Date().getTime();
 	if(!root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers)
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers = vs.headers;
+
+	var bodyAndDoc = preHandleBody(api.body);
+	api.body = bodyAndDoc[0];
+	api['@body'] = bodyAndDoc[1];
 	request(function(res){
 		if(api.var) {
 			if(impactVariable[api.var]) {
@@ -204,7 +230,10 @@ var reqApi = function(apis, cur, fcDone){
 		}
 		if(res){
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {html: res.raw_body};
-			if(!res.error){
+			var expectAndDoc = preHandleBody(api.expect);
+			api.expect = expectAndDoc[0];
+			api['@expect'] = expectAndDoc[1];
+			if(!res.error){								
 				if(!api.expect.status){
 					if(root.status) api.expect.status = root.status;
 				}
@@ -281,9 +310,27 @@ var reqApi = function(apis, cur, fcDone){
 	}, api.method, api.url, api.body, api.headers);
 }
 
-exports.execute = function(file){	
+var prehandleFile = function(file, fcDone){
+	var content = '';
+	var lineReader = require('readline').createInterface({
+	  input: fs.createReadStream(file)
+	});
+
+	lineReader.on('line', function (line) {
+	  if(line.indexOf('///') != -1){
+	  	line = line.replace(/^\s/, '').replace(/\s+$/, '').replace(/"(.*?)"(.*?)\/\/\/(.*)/, '"$1///$3"$2');
+	  }
+	  content += line + '\r\n';
+	});
+
+	lineReader.on('close', function(){
+		if(fcDone) fcDone(null, JSON.parse(content));
+	});
+}
+
+exports.execute = function(file, exportType){	
 	console.log("Testcase file: " + file)
-	jsonfile.readFile(file, function(err, root0) {
+	prehandleFile(file, function(err, root0) {
 		root = root0;
 		root.pass = 0;
 		root.fail = 0;
@@ -295,7 +342,7 @@ exports.execute = function(file){
 	  	if(typeof(root.testcases[cur]) == 'object'){
 	  		if(fcDone) fcDone(tcs, cur);
 	  	}else{
-	  		jsonfile.readFile(root.testcases[cur], function(err, root0) {
+	  		prehandleFile(root.testcases[cur], function(err, root0) {
 	  			if(err) return console.log(err);
 	  			root.testcases[cur] = root0;
 	  			if(fcDone) fcDone(tcs, cur);
@@ -317,40 +364,53 @@ exports.execute = function(file){
 		  	});
 			});			
 	  }
-	  runTestCase(root.testcases, 0, function(){	  
-	  	fs.readFile(__dirname + '/_result.template', 'utf-8', function(err, data){
-	  		if(err) return console.error(err);
-	  		data = data.replace('$data', JSON.stringify(root));
-	  		fs.writeFile(root.project + ".result.html", data, function(err) {
-			    if(err) return console.error(err);
-			    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
+	  runTestCase(root.testcases, 0, function(){
+	  	if(exportType == 'doc'){
+		  	fs.readFile(__dirname + '/_doc.template', 'utf-8', function(err, data){
+		  		if(err) return console.error(err);
+		  		data = data.replace('$data', JSON.stringify(root));
+		  		fs.writeFile(root.project + ".doc.html", data, function(err) {
+				    if(err) return console.error(err);
+				    console.log('\n\n***** Please see test result in "' + root.project + '.doc.html".');
+				    var open = require('open');
+				    open(root.project + '.doc.html');
+					}); 
+		  	});
+		  }else {
+		  	fs.readFile(__dirname + '/_result.template', 'utf-8', function(err, data){
+		  		if(err) return console.error(err);
+		  		data = data.replace('$data', JSON.stringify(root));
+		  		fs.writeFile(root.project + ".result.html", data, function(err) {
+				    if(err) return console.error(err);
+				    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
 
-			    require('http').createServer(function(req, res){			    	
-			      if(req.url == '/result'){
-							res.writeHead(200, {
-			         	'Content-Type': 'application/json',
-			         	'Access-Control-Allow-Origin': '*',
-			         	'Access-Control-Request-Method': 'GET'
-			      	});
-			      	res.end(JSON.stringify(root));
-			      }else {
-			      	var regex = req.url.toString().match(/\/request\/([^\/]+)\/([^\/]+)/);
-			      	testResult.current.testcasesIndex = parseInt(regex[1]);
-			      	reqApi(root.testcases[testResult.current.testcasesIndex].api, parseInt(regex[2]), function(){
-					  		res.writeHead(200, {
-			         	'Content-Type': 'application/json',
-			         	'Access-Control-Allow-Origin': '*',
-			         	'Access-Control-Request-Method': 'GET'
+				    require('http').createServer(function(req, res){			    	
+				      if(req.url == '/result'){
+								res.writeHead(200, {
+				         	'Content-Type': 'application/json',
+				         	'Access-Control-Allow-Origin': '*',
+				         	'Access-Control-Request-Method': 'GET'
 				      	});
 				      	res.end(JSON.stringify(root));
-					  	});
-			      }
-			    }).listen(61188);
-			    console.log('Start server at 127.0.0.1:61188');
-			    var open = require('open');
-			    open(root.project + '.result.html');
-				}); 
-	  	});		
+				      }else {
+				      	var regex = req.url.toString().match(/\/request\/([^\/]+)\/([^\/]+)/);
+				      	testResult.current.testcasesIndex = parseInt(regex[1]);
+				      	reqApi(root.testcases[testResult.current.testcasesIndex].api, parseInt(regex[2]), function(){
+						  		res.writeHead(200, {
+				         	'Content-Type': 'application/json',
+				         	'Access-Control-Allow-Origin': '*',
+				         	'Access-Control-Request-Method': 'GET'
+					      	});
+					      	res.end(JSON.stringify(root));
+						  	});
+				      }
+				    }).listen(61188);
+				    console.log('Start server at 127.0.0.1:61188');
+				    var open = require('open');
+				    open(root.project + '.result.html');
+					}); 
+		  	});
+		  }
 	  });
 	});
 };
