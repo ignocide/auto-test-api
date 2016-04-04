@@ -132,6 +132,11 @@ var preHandleBody = function(data, dox) {
 					'@type': bd[1],
 					'@des': bd[2]
 				};
+			}else{
+				doc[key.match(/\w+/)] = {
+					'@type': typeof(data[i]),
+					'@des': 'Unknown'
+				};
 			}
 		}
 		body[key] = data[i];
@@ -178,7 +183,7 @@ var compareObj = function(o, n, fcDone){
 							return false;
 						}
 					}
-				}			
+				}
 			}else if(n[i] instanceof Object){
 				return compareObj(o[i], n[i]);
 			}else {
