@@ -58,8 +58,10 @@ var removeSpecialInField = function(obj, isArray){
 			key = k.match(/\w+/);		
 		}
 		if(isArray){
-			if(obj instanceof Array || obj instanceof Object){
+			if(obj instanceof Array){
 				nobj[key] = removeSpecialInField(obj[k], true);
+			}else if(obj instanceof Object){
+				nobj[key] = removeSpecialInField(obj[k]);
 			}else {
 				nobj.push(obj[k]);
 			}			
@@ -142,50 +144,6 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
-var preHandleBody = function(data, isArray) {	
-	var doc = isArray ? [] : {};
-	var body = isArray ? [] : {};
-	for(var i in data){
-		var key = i;
-		if(i.indexOf('///') != -1) {
-			key = i.substr(0, i.indexOf('///'));
-		}
-		if(isArray){
-			if(data[i] instanceof Array || data[i] instanceof Object){
-				var ds = preHandleBody(data[i]);
-				body[key] = ds[0];
-				doc[key.match(/\w+/)] = ds[1];
-			}else{
-				body.push(data[i]);
-			}			
-		}else{
-			if(data[i] instanceof Array){
-				var ds = preHandleBody(data[i], true);
-				body[key] = ds[0];
-				doc[key.match(/\w+/)] = ds[1];
-			}else if(data[i] instanceof Object){
-				var ds = preHandleBody(data[i]);
-				body[key] = ds[0];
-				doc[key.match(/\w+/)] = ds[1];
-			}else{
-				var bd = i.match(/\/\/\/\((.*?)\)\s*(.*)/);
-				if(bd != null && bd.length == 3){					
-					doc[key.match(/\w+/)] = {
-						'@type': bd[1],
-						'@des': bd[2]
-					};
-				}else{
-					doc[key.match(/\w+/)] = {
-						'@type': typeof(data[i]),
-						'@des': 'Unknown'
-					};
-				}
-				body[key] = data[i];			
-			}
-		}
-	}	
-	return [body, doc];
-};
 
 var compareObj = function(o, n, fcDone){	
 	for(var i in n){
@@ -266,9 +224,6 @@ var reqApi = function(apis, cur, fcDone){
 	if(!root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers)
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers = vs.headers;
 
-	var bodyAndDoc = preHandleBody(api.body);
-	api.body = bodyAndDoc[0];
-	api['@body'] = bodyAndDoc[1];
 	request(function(res){
 		if(api.var) {
 			if(impactVariable[api.var]) {
@@ -279,10 +234,6 @@ var reqApi = function(apis, cur, fcDone){
 		}
 		if(res){
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {status: res.statusCode, data: null, html: res.raw_body};
-			debugger;
-			var expectAndDoc = preHandleBody(api.expect);
-			api.expect = expectAndDoc[0];			
-			api['@expect'] = expectAndDoc[1];			
 			if(!res.error) {
 				if(!api.expect.status){
 					if(root.status) api.expect.status = root.status;
@@ -368,9 +319,6 @@ var prehandleFile = function(file, fcDone){
 	});
 
 	lineReader.on('line', function (line) {
-	  if(line.indexOf('///') != -1){
-	  	line = line.replace(/^\s/, '').replace(/\s+$/, '').replace(/"(.*?)"(.*?)\/\/\/(.*)/, '"$1///$3"$2');
-	  }
 	  content += line + '\r\n';
 	});
 
