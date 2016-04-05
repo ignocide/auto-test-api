@@ -50,6 +50,29 @@ var handleBody = function(body, fcImpact){
 	}	
 	return body;
 }
+var removeSpecialInField = function(obj, isArray){
+	var nobj = isArray ? [] : {};
+	for(var k in obj){
+		var key = k;		
+		if(k.match(/[!:\*]/)){
+			key = k.match(/\w+/);		
+		}
+		if(isArray){
+			if(obj instanceof Array || obj instanceof Object){
+				nobj[key] = removeSpecialInField(obj[k], true);
+			}else {
+				nobj.push(obj[k]);
+			}			
+		}else if(obj instanceof Array){
+			nobj[key] = removeSpecialInField(obj[k], true);
+		}else if(obj[k] instanceof Object){
+			nobj[key] = removeSpecialInField(obj[k]);
+		}else{
+			nobj[key] = obj[k];
+		}
+	}
+	return nobj;
+}
 var handleUrl = function(url){
 	while((regex = /\$\{([^\}]+)\}/.exec(url)) != null){		
 		var varName = regex[1];
@@ -119,31 +142,46 @@ var error = function(des){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
 };
-var preHandleBody = function(data, dox) {	
-	var doc = dox ? dox : {};
-	var body = {};	
-	for(var i in data){					
+var preHandleBody = function(data, isArray) {	
+	var doc = isArray ? [] : {};
+	var body = isArray ? [] : {};
+	for(var i in data){
 		var key = i;
-		if(typeof(i) == 'string'){
-			if(i.indexOf('///') != -1){
-				var key = key.substr(0, key.indexOf('///'));
-				var bd = i.match(/\/\/\/\((.*?)\)\s*(.*)/);					
-				doc[key.match(/\w+/)] = {
-					'@type': bd[1],
-					'@des': bd[2]
-				};
-			}else{
-				doc[key.match(/\w+/)] = {
-					'@type': typeof(data[i]),
-					'@des': 'Unknown'
-				};
-			}
+		if(i.indexOf('///') != -1) {
+			key = i.substr(0, i.indexOf('///'));
 		}
-		body[key] = data[i];
-		if(data[i] instanceof Object){
-			var ds = preHandleBody(body[key], doc[key]);
-			body[key] = ds[0];
-			doc[key.match(/\w+/)] = ds[1];
+		if(isArray){
+			if(data[i] instanceof Array || data[i] instanceof Object){
+				var ds = preHandleBody(data[i]);
+				body[key] = ds[0];
+				doc[key.match(/\w+/)] = ds[1];
+			}else{
+				body.push(data[i]);
+			}			
+		}else{
+			if(data[i] instanceof Array){
+				var ds = preHandleBody(data[i], true);
+				body[key] = ds[0];
+				doc[key.match(/\w+/)] = ds[1];
+			}else if(data[i] instanceof Object){
+				var ds = preHandleBody(data[i]);
+				body[key] = ds[0];
+				doc[key.match(/\w+/)] = ds[1];
+			}else{
+				var bd = i.match(/\/\/\/\((.*?)\)\s*(.*)/);
+				if(bd != null && bd.length == 3){					
+					doc[key.match(/\w+/)] = {
+						'@type': bd[1],
+						'@des': bd[2]
+					};
+				}else{
+					doc[key.match(/\w+/)] = {
+						'@type': typeof(data[i]),
+						'@des': 'Unknown'
+					};
+				}
+				body[key] = data[i];			
+			}
 		}
 	}	
 	return [body, doc];
@@ -151,9 +189,15 @@ var preHandleBody = function(data, dox) {
 
 var compareObj = function(o, n, fcDone){	
 	for(var i in n){
-		var g = i.match(/[!:]+/);
+		var g = i.match(/[\*!:]+/);
 		if(g != null){
 			var io = i.substr(0, i.indexOf(g[0]));
+			if(g[0] == '*'){
+				if(!o[io]){
+					error("Expected: " + io + " must be something, Actual: " + io + " is nothing");
+					return true;
+				}
+			}
 			if(n[i] instanceof Array){				
 				if(g[0] == ':'){
 					if(o[io] instanceof Array){
@@ -234,11 +278,12 @@ var reqApi = function(apis, cur, fcDone){
 			impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;					
 		}
 		if(res){
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {html: res.raw_body};
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {status: res.statusCode, data: null, html: res.raw_body};
+			debugger;
 			var expectAndDoc = preHandleBody(api.expect);
-			api.expect = expectAndDoc[0];
-			api['@expect'] = expectAndDoc[1];
-			if(!res.error){								
+			api.expect = expectAndDoc[0];			
+			api['@expect'] = expectAndDoc[1];			
+			if(!res.error) {
 				if(!api.expect.status){
 					if(root.status) api.expect.status = root.status;
 				}
@@ -246,18 +291,18 @@ var reqApi = function(apis, cur, fcDone){
 					if(api.expect.status instanceof Array){
 						if(api.expect.status.indexOf(res.statusCode) == -1){
 							error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;	
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;	
 						}
 					}else if(api.expect.status != res.statusCode){
 						error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = res.code;
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;
 					}
 				}
 				if(api.expect.data){
 					if(typeof(api.expect.data) == 'object'){
 						api.expect.data = handleBody(api.expect.data);
 						var rs = JSON.parse(res.raw_body.toString());
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
 						if(compareObj(rs, api.expect.data)){
 							if(api.var){
 				  			vs[api.var] = rs;				  							  			
@@ -265,14 +310,14 @@ var reqApi = function(apis, cur, fcDone){
 						}
 					}else {
 						var rs = res.raw_body;
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = rs;
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
 						if(rs != api.data){
 							error("Expected: \"" + api.data + "\", Actual: \"" + rs + "\"");
 						}else if(api.var){
 		  				vs[api.var] = rs;		  				
 		  			}
 					}
-				}		
+				}
 				var updateDeepObject = function(old, update){
 					for(var k in update){
 						if(typeof(update[k]) == 'object'){
@@ -283,7 +328,8 @@ var reqApi = function(apis, cur, fcDone){
 					}
 					return old;
 				};
-				if(api.apply){
+				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['output'] = removeSpecialInField(api.expect);
+				if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass !== false  && api.apply){
 					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies = [];
 					for(var o in api.apply){
 						var obj = {varName: o};
@@ -298,7 +344,7 @@ var reqApi = function(apis, cur, fcDone){
 					}
 				}
 			}else{						
-				error('Error ' + res.statusCode + ': "' + res.statusMessage + '"');
+				error(res.error.toString());
 			}
 		}
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			

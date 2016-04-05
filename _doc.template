@@ -62,13 +62,13 @@
 						<td class="mdl-data-table__cell--non-numeric"><a><h6 ng-bind="api._url ? api._url : api.url"></h6></a></td>
 						<td class="mdl-data-table__cell--non-numeric">
 							<h6>Structure</h6>
-							<pre class="mbox">{{api['body'] | json}}</pre>
+							<pre class="mbox">{{api['_body'] | json}}</pre>
 							<h6>Description</h6>
 							<json-viewer data="api['@body']" class="mbox"></json-viewer>							
 						</td>
 						<td class="mdl-data-table__cell--non-numeric">
 							<h6>Structure</h6>
-							<pre class="mbox">{{api['expect'] | json}}</pre>
+							<pre class="mbox">{{api['output'] | json}}</pre>
 							<h6>Description</h6>
 							<json-viewer data="api['@expect']" class="mbox"</json-viewer>							
 						</td>						
