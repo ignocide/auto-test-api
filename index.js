@@ -3,6 +3,7 @@ var fs = require('fs');
 var vs = {};
 var root = {};
 var impactVariable = {};
+var keywords = ['env', 'doc', 'utils', 'headers'];
 var testResult = {
 	current: {
 		testcasesIndex: 0,
@@ -57,14 +58,8 @@ var removeSpecialInField = function(obj, isArray){
 		if(k.match(/[!:\*]/)){
 			key = k.match(/\w+/);		
 		}
-		if(isArray){
-			if(obj instanceof Array){
-				nobj[key] = removeSpecialInField(obj[k], true);
-			}else if(obj instanceof Object){
-				nobj[key] = removeSpecialInField(obj[k]);
-			}else {
-				nobj.push(obj[k]);
-			}			
+		if(isArray && !(obj instanceof Array) && !(obj instanceof Object)){
+			nobj.push(obj[k]);
 		}else if(obj instanceof Array){
 			nobj[key] = removeSpecialInField(obj[k], true);
 		}else if(obj[k] instanceof Object){
@@ -87,13 +82,108 @@ var handleUrl = function(url){
 	}	
 	return url;
 }
+var copyToActualDoc = function(obj, isArray){
+	var rs = obj instanceof Array ? [] : {};
+	for(var i in obj){
+		if(obj[i] instanceof Array){
+			rs[i] = copyToActualDoc(obj[i], true);
+		} else if(obj[i] instanceof Object){
+			rs[i] = copyToActualDoc(obj[i]);
+		}else{
+			rs[i] = obj[i];
+		}
+		if(isArray) break;
+	}
+	return rs;
+}
+var copyToDoc = function(data, docs, path, isArray){
+	var getPath = function(path, key){
+		if(!path) return key;
+		return path + "." + key;
+	}
+	var getType = function(obj){
+		if(obj instanceof Array)
+			return "array";
+		return typeof(obj);
+	}
+	
+	var edoc = isArray ? [] : {};
+	for(var i in data){
+		var path0 = getPath(path, i);
+		if(isArray && !(data[i] instanceof Array) && !(data[i] instanceof Object)){
+			edoc[i] = {'@doc': docs[path0] ? docs[path0] : '<<< Not found] >>>', '@type': getType(data[i]) };
+			var data0 = data[i];
+			if((data0 instanceof Array) && data0.length > 0){
+				edoc[i]["data"] = data0[0];
+			}else if(data0 instanceof Object){
+				edoc[i]["data"] = data0;				
+			}
+		}else if(data[i] instanceof Array){
+			edoc[i] = {'@doc': docs[path0] ? docs[path0] : '<<< Not found] >>>', '@type': getType(data[i]) };
+			var data0 = copyToDoc(data[i], docs, path0, true);
+			if((data0 instanceof Array) && data0.length > 0){
+				edoc[i]["@data"] = data0[0];
+			}else if(data0 instanceof Object){
+				edoc[i]["@data"] = data0;
+			}
+			if(isArray) return edoc;
+		}else if(data[i] instanceof Object){
+			edoc[i] = {'@doc': docs[path0] ? docs[path0] : '<<< Not found] >>>', '@type': getType(data[i]) };
+			var data0 = copyToDoc(data[i], docs, path0);
+			if((data0 instanceof Array) && data0.length > 0){
+				edoc[i]["@data"] = data0[0];
+			}else if(data0 instanceof Object){
+				edoc[i]["@data"] = data0;
+			}
+			if(isArray) return edoc;
+		}else{
+			edoc[i] = {'@doc': docs[path0] ? docs[path0] : '<<< Not found] >>>', '@type': getType(data[i]) };
+			var data0 = data[i];
+			if((data0 instanceof Array) && data0.length > 0){
+				edoc[i]["@data"] = data0[0];
+			}else if(data0 instanceof Object){
+				edoc[i]["@data"] = data0;
+			}
+		}		
+	}
+	return edoc;
+}
+var getDocBundle = function(doc){
+	var docs = {};
+	var idocs = doc.split('|');
+	for(var i in idocs){		
+		var item = eval('vs.doc.' + idocs[i].replace('/\s/', ''));
+		for(var k in item){
+			var k1 = k.match(/([^@]+)/)[0];
+			if(item[k] && item[k].length > 0){
+				var m = item[k].match(/\$\{(\w+)\}/);				
+				if(m != null){				
+					var docs1 = getDocBundle(m[1].replace('/\s/', ''));
+					for(var j in docs1){
+						docs[k1 + "." + j] = docs1[j];
+					}
+				}else{
+					docs[k1] = item[k];
+				}				
+			}else{
+				docs[k1] = "<<< Update later >>>";
+			}
+		}
+	}
+	return docs;
+}
 var request = function(fcDone, method, url, body, headers){
 	try{
-		url = handleUrl(url);
+		body = body ? body : {};
+		var api = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex];
+		url = handleUrl(url);		
 		body = handleBody(body, function(impactId){
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.impactId = impactId;
+			api.resultTest.impactId = impactId;
 		});	
-		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]._body = body;
+		api._body = body;
+		if(api.doc && api.doc.body){
+			api['@body'] = copyToDoc(body, getDocBundle(api.doc.body));
+		}
 		if('post' == method.toLowerCase()){
 			var req = http.post(url);
 			if(headers) req.headers(headers);
@@ -200,8 +290,26 @@ var compareObj = function(o, n, fcDone){
 			if(n[i] instanceof Object){
 				return compareObj(o[i], n[i]);
 			}else{
-				if(n[i] != o[i]){
-					error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+				try{
+					if(n[i] == undefined){
+						error("There is not field \"" + i + "\" in expected data");
+						return false;
+					}else if(o[i] == undefined){
+						error("There is not field \"" + i + "\" in actual data");
+						return false;
+					}else if(n[i] != o[i]){
+						error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+						return false;
+					}
+				}catch(e){
+					if(o == null){
+						error("Value of \"" + i + "\" is null in actual data");
+						return false;
+					}else if(n == null){
+						error("Value of \"" + i + "\" is null in expected data");
+						return false;
+					}
+					error(e);
 					return false;
 				}
 			}
@@ -250,25 +358,36 @@ var reqApi = function(apis, cur, fcDone){
 					}
 				}
 				if(api.expect.data){
+					if(api.des == 'Get place details') debugger;
 					if(typeof(api.expect.data) == 'object'){
 						api.expect.data = handleBody(api.expect.data);
 						var rs = JSON.parse(res.raw_body.toString());
 						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);
 						if(compareObj(rs, api.expect.data)){
 							if(api.var){
+								if(keywords.indexOf(api.var) != -1){
+									console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
+									throw 'Variable name is same keywords';
+								}
 				  			vs[api.var] = rs;				  							  			
 				  		}
 						}
 					}else {
 						var rs = res.raw_body;
 						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);
 						if(rs != api.data){
 							error("Expected: \"" + api.data + "\", Actual: \"" + rs + "\"");
 						}else if(api.var){
+							if(keywords.indexOf(api.var) != -1){
+								console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
+								throw 'Variable name is same keywords';
+							}
 		  				vs[api.var] = rs;		  				
 		  			}
 					}
-				}
+				}				
 				var updateDeepObject = function(old, update){
 					for(var k in update){
 						if(typeof(update[k]) == 'object'){
@@ -293,6 +412,9 @@ var reqApi = function(apis, cur, fcDone){
 						obj.newValue = vs[o];
 						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies.push(obj);
 					}
+				}
+				if(api.doc && api.doc.actual){
+					api['@actual'] = copyToDoc(api.actual.data, getDocBundle(api.doc.actual));					
 				}
 			}else{						
 				error(res.error.toString());
@@ -336,6 +458,7 @@ exports.execute = function(file, exportType){
 		
 		vs.headers = root.headers;
 		vs.env = root.env;
+		vs.doc = root.doc;
 		console.log('################### ' + root.project + ' ###################');
 	  var handleLoadTestcase = function(tcs, cur, fcDone){	  	
 	  	if(typeof(root.testcases[cur]) == 'object'){

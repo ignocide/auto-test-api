@@ -5,22 +5,34 @@
 		<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
 		<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
 	</head>
-	<body ng-controller="TestResultController">
-		<h2><small>Test result for</small> {{data.project}} <small>project</small><br/>
-		<small style="opacity: 1;"><small><span style="color: green">PASSED: {{data.pass}}</span>, <span style="color: red">FAILED: {{data.fail}}</span>, <span>TOTAL: {{data.pass + data.fail}}</span></small></small></h2>
-		<ul class="mdl-components__warning" style="color: orange;">
-			<li ng-repeat="w in data.warning" ng-bind="w"></li>
-		</ul>
-		<hr/>
-		<div ng-repeat="testcase in data.testcases">
+	<body ng-controller="TestResultController" style="padding: 10px;">
+		<!-- Always shows a header, even in smaller screens. -->
+	<div class="mdl-layout mdl-js-layout">
+	  <header class="mdl-layout__header">
+	    <div class="mdl-layout__header-row">
+	      <span class="mdl-layout-title">
+					<h2><small>Specific document for </small> {{data.project}} <small>APIs</small></h2>
+	      </span>	      
+	      <div class="mdl-layout-spacer"></div>	      	      
+	    </div>
+	  </header>
+  </div>
+  <main>
+    <div class="page-content">
+    	<br/><br/><br/><br/>
+			<ul class="mdl-components__warning" style="color: orange;">
+				<li ng-repeat="w in data.warning" ng-bind="w"></li>
+			</ul>
+			<hr/>
+			<div ng-repeat="testcase in data.testcases">
 			<h4>
 				{{testcase.title}}<br/>
 				<small><span style="color: green">PASSED: {{testcase.pass}}</span>, <span style="color: red">FAILED: {{testcase.fail}}</span>, <span>TOTAL: {{testcase.pass + testcase.fail}}</span></small>
 			</h4>
-			<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+			<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" style="width: 100%">
 				<thead>
 					<tr>
-						<th class="mdl-data-table__cell--non-numeric">ID</th>
+						<th class="mdl-data-table__cell--non-numeric" width="10">ID</th>
 						<th class="mdl-data-table__cell--non-numeric">Method<br/>& Data</th>
 						<th class="mdl-data-table__cell--non-numeric">Url pattern<small> / url actual</small><br/>API url which used for testing</th>
 						<th class="mdl-data-table__cell--non-numeric">Expected<br/>Response data</th>
@@ -32,8 +44,16 @@
 				</thead>
 				<tbody>
 					<tr ng-repeat="api in testcase.api" style="color: {{api.resultTest ? (api.resultTest.pass ? 'green' : 'red') : ''}}" id="{{api.id}}">
-						<th class="mdl-data-table__cell--non-numeric"><a href="javascript: void(0);" ng-click="request($parent.$index, $index)"><b ng-bind="api.id"></b></a></th>
-						<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}"><a href="javascript:void(0);" ng-click="showLog('Request body', api._body);"><b ng-bind="api.method.toUpperCase()"></b></a><br/><small>( {{api.resultTest.duration}} ms )</small></td>
+						<th class="mdl-data-table__cell--non-numeric">
+							<a href="javascript: void(0);" ng-click="request($parent.$index, $index)" title="Re-test" style="float: left;"><i class="material-icons small">refresh</i></a>
+							<b>{{api.id}}</b>
+							<br/>
+							<small>( {{api.resultTest.duration}} ms )</small>
+						</th>
+						<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}">
+							<b style="background-color: black; padding: 3px; color: white; border-radius: 5px;">{{api.method.toUpperCase()}}</b><br/>
+							<a href="javascript:void(0);" ng-click="showLog('Request body', api._body);" style="position: relative; top: 3px;">Data</a>							
+						</td>
 						<td class="mdl-data-table__cell--non-numeric"><div ng-bind="'#' + api.des"></div><b><small ng-bind="api._url ? api._url : api.url"></small></b></td>
 						<td class="mdl-data-table__cell--non-numeric" title="{{api.expect | json}}">{{api.actual.status}}<br/><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog('Expected data', api.expect)"></a></td>
 						<td class="mdl-data-table__cell--non-numeric">
@@ -50,7 +70,16 @@
 				</tbody>
 			</table>
 		</div>
-		<br/><br/><br/>
+		<br/>
+		<br/>
+		<br/>
+		<footer class="mdl-mega-footer">
+	    <div class="mdl-mega-footer--bottom-section">
+	      <div class="mdl-logo">
+	        {{data.team}}
+	      </div>
+	    </div>
+	  </footer>
 	</body>
 	<script type="text/javascript">
 		angular.module('my-app', [])
