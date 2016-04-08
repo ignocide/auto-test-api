@@ -279,7 +279,7 @@ var compareObj = function(o, n, fcDone){
 			}else if(n[i] instanceof Object){
 				return compareObj(o[i], n[i]);
 			}else {
-				if(g[0] == '!'){		
+				if(g[0] == '!'){
 					if(n[i] == o[io]){
 						error("Expected: " + io + " != \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
 						return false;
@@ -287,9 +287,9 @@ var compareObj = function(o, n, fcDone){
 				}
 			}
 		}else{
-			if(n[i] instanceof Object){
+			if(n[i] instanceof Object){				
 				return compareObj(o[i], n[i]);
-			}else{
+			}else {
 				try{
 					if(n[i] == undefined){
 						error("There is not field \"" + i + "\" in expected data");
@@ -297,9 +297,46 @@ var compareObj = function(o, n, fcDone){
 					}else if(o[i] == undefined){
 						error("There is not field \"" + i + "\" in actual data");
 						return false;
-					}else if(n[i] != o[i]){
-						error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
-						return false;
+					}else{ 
+						if(typeof(n[i]) == 'string'){							
+							var matchRegex = n[i].match(/\$\((.*?)\)/);
+							if(matchRegex != null && matchRegex.length > 1){
+								// if(typeof(o[i]) != 'string'){
+								// 	error("Expected type of " + i + " is string, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])));
+								// 	return false;
+								// }else 
+								if(matchRegex[1] == 'string'){
+									if(typeof(o[i]) != 'string'){
+										error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[i]));
+										return false;
+									}
+								}else if(matchRegex[1] == 'number'){
+									if(typeof(o[i]) != 'number'){
+										error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[i]));
+										return false;
+									}
+								}else if(matchRegex[1] == 'object'){
+									if(!(o[i] instanceof Object)){
+										error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])));
+										return false;
+									}
+								}else if(matchRegex[1] == 'array'){
+									if(!(o[i] instanceof Array)){
+										error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[i] instanceof Object ? "object" : typeof(o[i])));
+										return false;
+									}
+								}else if(!new RegExp(matchRegex[1]).test(o[i])){
+									error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is " + o[i]);
+									return false;
+								}
+							}else if(n[i] != o[i]){
+								error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+								return false;
+							}
+						}else if(n[i] != o[i]){
+							error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+							return false;
+						}
 					}
 				}catch(e){
 					if(o == null){
@@ -357,21 +394,24 @@ var reqApi = function(apis, cur, fcDone){
 						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;
 					}
 				}
-				if(api.expect.data){
-					if(api.des == 'Get place details') debugger;
+				if(api.expect.data){					
 					if(typeof(api.expect.data) == 'object'){
-						api.expect.data = handleBody(api.expect.data);
-						var rs = JSON.parse(res.raw_body.toString());
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);
-						if(compareObj(rs, api.expect.data)){
-							if(api.var){
-								if(keywords.indexOf(api.var) != -1){
-									console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
-									throw 'Variable name is same keywords';
-								}
-				  			vs[api.var] = rs;				  							  			
-				  		}
+						try{
+							api.expect.data = handleBody(api.expect.data);
+							var rs = JSON.parse(res.raw_body.toString());
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);
+							if(compareObj(rs, api.expect.data)){
+								if(api.var){
+									if(keywords.indexOf(api.var) != -1){
+										console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
+										throw 'Variable name is same keywords';
+									}
+					  			vs[api.var] = rs;				  							  			
+					  		}
+							}
+						}catch(e){
+							console.error(e);
 						}
 					}else {
 						var rs = res.raw_body;
@@ -390,11 +430,17 @@ var reqApi = function(apis, cur, fcDone){
 				}				
 				var updateDeepObject = function(old, update){
 					for(var k in update){
-						if(typeof(update[k]) == 'object'){
+						if(update[k] instanceof Array){
+							updateDeepObject(old[k], update[k]);
+						} else if(update[k] instanceof Object){
 							updateDeepObject(old[k], update[k]);
 						}else{
 							old[k] = update[k];
 						}
+					}
+					for(var i in old){
+						if(update[i] == undefined)
+							delete old[i];
 					}
 					return old;
 				};
@@ -406,7 +452,11 @@ var reqApi = function(apis, cur, fcDone){
 						obj.oldValue = JSON.parse(JSON.stringify(vs[o]));
 						var objChange = {};
 						for(f in api.apply[o]){
-							objChange[f] = handleBody(api.apply[o][f]);
+							try{
+								objChange[f] = handleBody(api.apply[o][f]);
+							}catch(e){
+								console.errro(e);
+							}
 						}								
 						vs[o] = updateDeepObject(vs[o], objChange);								
 						obj.newValue = vs[o];
