@@ -138,9 +138,9 @@
 											<b>{{api.id}}</b><br/>
 											<a href="javascript: void(0);" ng-click="request($parent.$index, $index)" title="Re-test" style="float: left;"><i class="material-icons small {{api.requesting ? 'loading' : ''}}">refresh</i></a>
 										</th>
-										<td class="mdl-data-table__cell--non-numeric" title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}">							
+										<td class="mdl-data-table__cell--non-numeric">							
 											<b class="method method-{{api.method.toLowerCase()}}">{{api.method.toUpperCase()}}</b>
-											<div style="margin-top: 6px;"><small>({{api.resultTest.duration}}ms)</small></div>
+											<div style="margin-top: 6px;"><small title="Start: {{api.resultTest.start | date: 'hh:mm:ss'}}, Done: {{api.resultTest.stop | date: 'hh:mm:ss'}}">({{api.resultTest.duration}}ms)</small></div>
 										</td>
 										<td class="mdl-data-table__cell--non-numeric scols">
 											<div>
@@ -151,10 +151,10 @@
 												<a href="javascript:void(0);" ng-click="showLog('Request body', api._body);" style="position: relative; top: 3px;" title="{{api.body | json}}">[Request data]</a>
 											</div>
 										</td>
-										<td class="mdl-data-table__cell--non-numeric scols" title="{{api.expect | json}}"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog('Expected data', api.expect)"></a></td>
+										<td class="mdl-data-table__cell--non-numeric scols"><a href="javascript:void(0)" ng-bind="api.expect" ng-click="showLog('Expected data', api.expect)" title="{{api.expect | json}}"></a></td>
 										<td class="mdl-data-table__cell--non-numeric scols">
 											Status {{api.actual.status}}<br/>
-											<a href="javascript:void(0)" ng-bind="api.actual.data" ng-click="showLog('Actual data', api.actual.data)" title="{{api.actual.data | json}}"></a><br/>
+											<a href="javascript:void(0)" ng-click="showLog('Actual data', api.actual.data)" title="{{api.actual.data | json}}">[Response data]</a><br/>
 											<a href="javascript:void(0)" ng-click="showLog('Actual html', api.actual.html, api.des)" title="{{api.actual.html}}">Show details</a>
 										</td>
 										<td class="mdl-data-table__cell--non-numeric scols"><a href="javascript:void(0)" ng-click="showLog('Value of ' + api.var, api.actual.data);"><b ng-bind="api.var"></b></a></td>

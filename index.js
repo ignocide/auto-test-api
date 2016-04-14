@@ -150,14 +150,13 @@ var copyToDoc = function(data, docs, path, isArray){
 	}
 	return edoc;
 }
-var getDocBundle = function(doc){
-	var docs = {};
-	var idocs = doc.split('|');
-	for(var i in idocs){		
-		var item = eval('vs.doc.' + idocs[i].replace('/\s/', ''));
-		for(var k in item){
+var getDocBundleObject = function(item, docs){
+	for(var k in item){
+		if(typeof(k) == 'object'){
+			docs = getDocBundleObject(item, docs);
+		}else {
 			var k1 = k.match(/([^@]+)/)[0];
-			if(item[k] && item[k].length > 0){
+			if(item[k] && item[k].length > 0){				
 				var m = item[k].match(/\$\{(\w+)\}/);				
 				if(m != null){				
 					var docs1 = getDocBundle(m[1].replace('/\s/', ''));
@@ -171,6 +170,15 @@ var getDocBundle = function(doc){
 				docs[k1] = "<<< Update later >>>";
 			}
 		}
+	}
+	return docs;
+}
+var getDocBundle = function(doc){
+	var docs = {};
+	var idocs = doc.split('|');
+	for(var i in idocs){		
+		var item = eval('vs.doc.' + idocs[i].replace('/\s/', ''));
+		docs = getDocBundleObject(item, docs);
 	}
 	return docs;
 }
@@ -396,10 +404,10 @@ var compareObj = function(o, n, isOnlyCheck){
 				return compareObj(o[i], n[i], isOnlyCheck);
 			}else {
 				try{
-					if(n[i] == undefined){
+					if(n[i] === undefined){
 						error("There is not field \"" + i + "\" in expected data", isOnlyCheck);
 						return false;
-					}else if(o[i] == undefined){
+					}else if(o[i] === undefined){
 						error("There is not field \"" + i + "\" in actual data", isOnlyCheck);
 						return false;
 					}else{ 
