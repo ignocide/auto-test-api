@@ -7,10 +7,12 @@
 			"url": "${env.url}:${env.port}/whatseat/cuisine/getListCuisines",
 			"var": "listCuisines",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"actual": "res|cuisines"
 			}
 		},
 		{
@@ -18,10 +20,12 @@
 			"method": "GET",
 			"url": "${env.url}:${env.port}/whatseat/cuisine/getCuisineDetails",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"actual": "res|cuisines"
 			}
 		}		
 	]

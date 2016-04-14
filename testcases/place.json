@@ -10,15 +10,89 @@
 		    "token": "${currentUser.baseClass[0].token}",
 		    "place": {
 		    	"title": "place 1",
-		    	"address": "address 1"
+		    	"address": "address 1",
+		    	"itemDescription": "address description 1",
+		    	"cuisineId": "${listCuisines.baseClass[0].itemId}",
+		    	"nationality": "US",
+		    	"placeIcon": "http://localhost/iconus",
+		    	"location": "10.2, 23",
+		    	"enableReview": "1",
+		    	"photos": [
+		    		"http://localhost/img01.jpg",
+		    		"http://localhost/img02.jpg",
+		    		"http://localhost/img03.jpg"
+		    	]
 		    }
-			},
+			},			
 			"var": "newPlace",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK"					
 				}
+			},
+			"doc": {
+				"body": "addPlace",
+				"actual": "res|places"
+			}
+		},
+		{
+			"des": "Add place for test update review to other place",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/place/addPlace",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "place": {
+		    	"title": "place 2",
+		    	"address": "address 2",
+		    	"itemDescription": "address description 2",
+		    	"cuisineId": "${listCuisines.baseClass[0].itemId}",
+		    	"nationality": "VN",
+		    	"placeIcon": "http://localhost/iconus2",
+		    	"location": "10.22, 223",
+		    	"enableReview": "1",
+		    	"photos": [
+		    		"http://localhost/img01.jpg",
+		    		"http://localhost/img02.jpg"
+		    	]
+		    }
+			},			
+			"var": "newPlace2",
+			"expect": {
+				"data": {
+					"code": "OK"					
+				}
+			}
+		},
+		{
+			"des": "Get place details",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getDetailedPlace",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},			
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId" : "${newPlace.baseClass[0].itemId}",
+							"title": "${newPlace.baseClass[0].title}",
+				    	"address": "${newPlace.baseClass[0].address}",
+				    	"itemDescription": "${newPlace.baseClass[0].itemDescription}",
+				    	"cuisineId": "${newPlace.baseClass[0].cuisineId}",
+				    	"nationality": "${newPlace.baseClass[0].nationality}",
+				    	"placeIcon": "${newPlace.baseClass[0].placeIcon}",
+				    	"location": "${newPlace.baseClass[0].location}",
+				    	"enableReview": "${newPlace.baseClass[0].enableReview}",
+				    	"photos": "${newPlace.baseClass[0].photos}"
+						}
+					]
+				}
+			},
+			"doc": {
+				"body": "getPlace",
+				"actual": "res|places"	
 			}
 		},
 		{
@@ -29,67 +103,48 @@
 		    "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}",
 		    "place": {
-		    	"itemId": "${newPlace.baseClass[0].itemId}",
-		    	"title": "place 1 updated",
-		    	"address": "address 1 updated",
-		    	"description": "des 1 updated"
+		    	"itemId" : "${newPlace.baseClass[0].itemId}",
+					"title": "${newPlace.baseClass[0].title} updated",
+		    	"address": "${newPlace.baseClass[0].address} updated",
+		    	"itemDescription": "${newPlace.baseClass[0].itemDescription} updated",
+		    	"cuisineId": "${newPlace.baseClass[0].cuisineId}",
+		    	"nationality": "${newPlace.baseClass[0].nationality}",
+		    	"placeIcon": "${newPlace.baseClass[0].placeIcon} updated",
+		    	"location": "${newPlace.baseClass[0].location}",
+		    	"enableReview": "${newPlace.baseClass[0].enableReview}",
+		    	"photos": [
+		    		"http://localhost/img03.jpg"
+		    	]
 		    }
+			},
+			"expect": {
+				"data": {
+					"code!": "NG"
+				}
 			},
 			"apply": {
 				"newPlace": {
 					"baseClass": [
 						{
-							"title" : "place 1 updated", 
-							"address": "address 1 updated",
-							"description": "des 1 updated"
+							"itemId" : "${newPlace.baseClass[0].itemId}",
+							"title": "${newPlace.baseClass[0].title} updated",
+				    	"address": "${newPlace.baseClass[0].address} updated",
+				    	"itemDescription": "${newPlace.baseClass[0].itemDescription} updated",
+				    	"cuisineId": "${newPlace.baseClass[0].cuisineId}",
+				    	"nationality": "${newPlace.baseClass[0].nationality}",
+				    	"placeIcon": "${newPlace.baseClass[0].placeIcon} updated",
+				    	"location": "${newPlace.baseClass[0].location}",
+				    	"enableReview": "${newPlace.baseClass[0].enableReview}",
+				    	"photos": [
+				    		"http://localhost/img03.jpg"
+				    	]
 						}
 					]
 				}
 			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Get all place",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/place/getAllPlaces",
-			"body": {
-		    
-			},
-			"var": "listPlaces",
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Get user places",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/place/getUserPlaces",
-			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}"
-			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Get places",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/place/getPlaces",
-			"body": {
-		    "placesId": ["${newPlace.baseClass[0].itemId}"]
-			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
+			"doc": {
+				"body": "addPlace",
+				"actual": "res|places"
 			}
 		},
 		{
@@ -101,21 +156,76 @@
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId" : "${newPlace.baseClass[0].itemId}",
+							"title": "${newPlace.baseClass[0].title}",
+				    	"address": "${newPlace.baseClass[0].address}",
+				    	"itemDescription": "${newPlace.baseClass[0].itemDescription}",
+				    	"cuisineId": "${newPlace.baseClass[0].cuisineId}",
+				    	"nationality": "${newPlace.baseClass[0].nationality}",
+				    	"placeIcon": "${newPlace.baseClass[0].placeIcon}",
+				    	"location": "${newPlace.baseClass[0].location}",
+				    	"enableReview": "${newPlace.baseClass[0].enableReview}",
+				    	"photos": "${newPlace.baseClass[0].photos}"
+						}
+					]
 				}
+			}
+		},
+		{
+			"des": "Get all place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getAllPlaces",
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId" : "$(string)",
+							"title": "$(string)",
+				    	"address": "$(string)",
+				    	"cuisineId": "$(string)",
+				    	"placeIcon": "$(string)",
+				    	"location": "$(^[\\d\\.]+?\\s?,\\s?[\\d\\.]+$)"
+						}
+					]
+				}
+			},
+			"doc": {
+				"actual": "res|places"
 			}
 		},		
 		{
-			"des": "Get place detail",
+			"des": "Get places",
 			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/place/getDetailedPlaces",
+			"url": "${env.url}:${env.port}/whatseat/place/getPlaces",
 			"body": {
 		    "placesId": ["${newPlace.baseClass[0].itemId}"]
 			},
+			"doc": {
+				"body": "getPlace",
+				"actual": "res|places"	
+			},
 			"expect": {
 				"data": {
-					"code!": "NG"
-				}
+					"code": "OK"
+				},
+					"baseClass": [
+						{
+							"itemId" : "${newPlace.baseClass[0].itemId}",
+							"title": "${newPlace.baseClass[0].title}",
+				    	"address": "${newPlace.baseClass[0].address}",
+				    	"itemDescription": "${newPlace.baseClass[0].itemDescription}",
+				    	"cuisineId": "${newPlace.baseClass[0].cuisineId}",
+				    	"nationality": "${newPlace.baseClass[0].nationality}",
+				    	"placeIcon": "${newPlace.baseClass[0].placeIcon}",
+				    	"location": "${newPlace.baseClass[0].location}",
+				    	"enableReview": "${newPlace.baseClass[0].enableReview}",
+				    	"photos": "${newPlace.baseClass[0].photos}"
+						}
+					]
 			}
 		},
 		{
@@ -125,26 +235,18 @@
 			"body": {
 		    "keyword": "place 1"
 			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Add review place",
-			"method": "PUT",
-			"url": "${env.url}:${env.port}/whatseat/review/place/addReview",
-			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-		    "placeId": "${newPlace.baseClass[0].itemId}",
-		    "rating": 3,
-		    "review": "Review place 0"
+			"doc": {
+				"body": "getPlace",
+				"actual": "res|places"	
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"title": "$(place\\s1)"
+						}
+					]
 				}
 			}
 		},
@@ -159,9 +261,56 @@
 		    "rating": 1,
 		    "review": "Review place 1"
 			},
+			"var": "newReviewPlace1",
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId": "$(string)",
+							"rating": 1,
+							"aid": "${currentUser.baseClass[0].aid}",
+							"userName": "${currentUser.baseClass[0].userName}",
+							"createDate": "$(string)",
+							"review": "Review place 1",
+							"objectId": "${newPlace.baseClass[0].itemId}",
+							"typeReview": "$(number)"
+						}
+					]
+				}
+			},
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res|reviews"	
+			}
+		},
+		{
+			"des": "Add review place",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/review/place/addReview",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "placeId": "${newPlace.baseClass[0].itemId}",
+		    "rating": 2,
+		    "review": "Review place 2"
+			},
+			"var": "newReviewPlace2",
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId": "$(string)",
+							"rating": 2,
+							"aid": "${currentUser.baseClass[0].aid}",
+							"userName": "${currentUser.baseClass[0].userName}",
+							"createDate": "$(string)",
+							"review": "Review place 2",
+							"objectId": "${newPlace.baseClass[0].itemId}",
+							"typeReview": "$(number)"
+						}
+					]
 				}
 			}
 		},
@@ -172,11 +321,18 @@
 			"body": {
 		    "placeId": "${newPlace.baseClass[0].itemId}"
 			},
-			"var": "newReview",
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass:": [
+						"${newReviewPlace2.baseClass[0]}",
+						"${newReviewPlace1.baseClass[0]}"						
+					]
 				}
+			},
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res|reviews"	
 			}
 		},
 		{
@@ -186,82 +342,68 @@
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}",
-		    "itemId": "${newReview.baseClass[0].itemId}",
+		    "itemId": "${newReviewPlace1.baseClass[0].itemId}",
 		    "rating": 4,
-		    "review": "Review place updated"
+		    "review": "${newReviewPlace1.baseClass[0].review} updated",
+		    "placeId": "${newPlace2.baseClass[0].itemId}"
 			},
-			"apply": {
-				"newReview" : {
-					"baseClass" : [
-						{
-							"review": "Review place updated",
-							"rating": 4
-						}
+			"var": "newReview",			
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			},
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res|reviews"	
+			}
+		},
+		{
+			"des": "Get all review places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/getAllReviews",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},			
+			"var": "newReview",
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass:": [
+						"${newReviewPlace2.baseClass[0]}",
+						"${newReviewPlace1.baseClass[0]}"						
 					]
 				}
 			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res|reviews"	
 			}
 		},
 		{
-			"des": "Delete review places",
+			"des": "Get user places",
 			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/review/place/deleteReview",
+			"url": "${env.url}:${env.port}/whatseat/place/getUserPlaces",
 			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-		    "itemId": "${newReview.baseClass[0].itemId}"
+		    "aid": "${currentUser.baseClass[0].aid}"
+			},
+			"doc": {
+				"body": "getPlace",
+				"actual": "res|places"
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Delete reviews by places id",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/review/place/deleteReviewByOId",
-			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-		    "objectId": "${newPlace.baseClass[0].itemId}"
-			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Delete place",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/place/deletePlace",
-			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-		    "placeId": "${newPlace.baseClass[0].itemId}"
-			},
-			"expect": {
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Get all place",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/place/getAllPlaces",
-			"body": {
-		    
-			},
-			"var": "listPlaces",
-			"expect": {
-				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId" : "$(string)",
+							"title": "$(string)",
+				    	"address": "$(string)",
+				    	"cuisineId": "$(string)",
+				    	"placeIcon": "$(string)",
+				    	"location": "$(^[\\d\\.]+?\\s?,\\s?[\\d\\.]+$)"
+						}
+					]
 				}
 			}
 		}

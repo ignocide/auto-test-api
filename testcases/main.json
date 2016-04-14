@@ -1,20 +1,175 @@
 {
-	"project": "What seat",
+	"project": "Test project",
+	"team": "Just4developments Team",
 	"env": {
 		"url": "http://localhost",
 		"port": 8080,
 		"login": {
-			"username": "tuanha",
-			"password": "123aA"
+			"username": "name",
+			"password": "12345"
 		},
 		"uniqueId": 1
+	},
+	"doc": {
+		"res": {
+			"code": "Server status code (error, success, not found...)",
+			"value": "Server status code description details",
+			"baseClass": "Object contains all response data"
+		},
+		"user": {
+			"id": "User ID",
+			"aid": "User ID",
+			"userName": "User name", 
+			"token": "User token",
+			"passWord": "User password",
+			"email": "User email",
+			"postCount": "Number of user article posting",
+			"displayName": "User full name",
+			"aboutMe": "Something about user",
+			"address": "User address",
+			"mobile": "User mobile phone",
+			"avatar": "User avatar",
+			"background": "User background image in app",
+			"deviceId": "List user devices ID",
+			"profile": "User profile",
+			"role": "User role can be in ( HL_VIEWER, HL_OWNER, HL_ADMIN )",
+			"fbId": "User facebook ID",
+			"gplusId": "User google plus ID",
+			"twId": "User twitter ID"
+		},
+		"users": {
+			"baseClass.0": "${user}"
+		},
+		"login": {
+			"userName": "User name",
+			"passWord": "User password"
+		},
+		"cuisine": {
+			"itemDescription": "Cuisine description",
+			"itemId": "Cuisine ID",
+			"id": "Cuisine ID",
+			"description": "Cuisine description",
+			"name": "Cuisine name",
+			"order": "Descible cuisine position which will be showed on client (Web, mobile...)"
+		},		
+		"place": {
+			"itemId": "Restaurant ID",
+			"aid": "User ID",
+			"title":"Restaurant name",
+			"address":"Restaurant address",
+			"itemDescription": "Restaurant description",
+			"description": "Restaurant description",
+			"cuisineId": "Cuisine ID",
+			"nationality": "Nationality name where restaurant be in",
+			"placeIcon": "Restaurant logo",
+			"photos": "Restaurant pictures",
+			"photos.0": "Url image",
+			"meals": "Meals in the restaurant",
+			"location": "Restaurant GPS location. Format: \"longtitude, latitude\"",
+			"enableReview": "Comment permission",
+			"state": "Restaurant state which is restaurant deleting or not",
+			"reviewScore": "Number comments",
+			"ratingScore": "Rating score",
+			"createDate":"Time when user created restaurant information",
+			"removeDate":"Time when user removed restaurant information"
+		},
+		"review": {
+			"itemId": "Review ID",
+      "rating": "Score of review",
+      "aid": "User ID",
+      "userName": "User name",
+      "userAvatar": "User avatar",
+      "createDate": "Time when user review restaurant",
+      "review": "Review information",
+      "objectId": "Restaurant ID",
+      "typeReview": "Descible review type. Example: 0: Meal, 1: Place"
+		},
+		"meal": {
+			"itemId":"Meal ID",
+			"aid":"User ID",
+			"userAvatar":"User avatar",
+			"userName":"User name",
+			"cuisineId":"Cuisine ID",
+			"enableReview":"Enable review flag. 1: Enable, 0: Disable",
+			"itemDescription":"Meal description",
+			"place": "Restaurant information where has this meal",
+			"@place":"${place}",
+			"nationality":"Nationality name where restaurant be in",
+			"photos": "Meal images which are urls",
+			"title":"Meal name",
+			"ratingScore": "Meal score which user rate for it",
+			"reviewScore": "Meal review which user review it",
+			"createDate":"Time when user created meal information",
+			"expiredDate":"Time when user can not see this meal on website",
+			"removeDate":"Time when user removed restaurant information",
+			"state":"Meal state. 0: Active, 1: Inactive, 2: Deleted"
+		},
+		"getPlace": {
+			"keyword": "Something which user enter to search in app",
+			"aid": "User ID",
+			"placesId": "List restaurant ID",
+			"placeId": "Restaurant ID"
+		},
+		"requestMeal": {
+			"keyword": "Something which user enter to search in app",
+			"mealId": "Meal ID",
+			"mealsId": "List meal ID",
+			"aid": "User ID", 
+	    "token": "User Token",
+	    "@meal": "${meal}",
+	    "meal": "Meal information"
+		},
+		"requestReviewPlace": {
+			"aid": "User ID",
+		  "token": "User token",
+		  "itemId": "Review ID",
+		  "placeId": "Restaurant ID",
+		  "rating": "Score which user vote for the restaurant",
+		  "review": "Review information",
+		  "objectId": "Restaurant ID"
+		},
+		"requestReviewMeal": {
+			"aid": "User ID",
+		  "token": "User token",
+		  "itemId": "Review ID",
+		  "mealId": "Meal ID",
+		  "rating": "Score which user vote for the restaurant",
+		  "review": "Review information",
+		  "objectId": "Meal ID"
+		},
+		"addPlace": {
+			"aid": "User ID",
+		  "token": "User token",
+		  "place": "Restaurant information",
+		  "@place": "${place}"		  
+		},
+		"reviews": {
+			"baseClass.0": "${review}",
+			"baseClass.0.cuisines": "Review information"
+		},
+		"cuisines": {
+			"baseClass.0": "${cuisine}",
+			"baseClass.0.cuisines": "Cuisine information",
+			"baseClass.0.cuisines.0": "${cuisine}"
+		},		
+		"responseMeals": {
+			"baseClass": "Meals information",
+			"baseClass.0": "${meal}"
+		},
+		"places": {
+			"baseClass": "Restaurant information",
+			"baseClass.0": "${place}"
+		}
 	},
 	"status": [200, 201],
 	"headers" : {
 		"content-type": "application/json"
 	},
-	"testcases": [
-		"testcases/login.json",
-		"testcases/place.json"
+	"testcases": [		
+		"testcases/user.json",
+		"testcases/cuisine.json",
+		"testcases/place.json",
+		"testcases/meal.json",
+		"testcases/clear.json"
 	]
 }

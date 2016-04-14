@@ -5,26 +5,19 @@
 			"des": "Login",
 			"method": "POST",
 			"url": "${env.url}:${env.port}/hugelist/account/login",
+			"doc": {
+				"body": "login",
+				"actual": "res|users"
+			},
 			"body": {
-		    "userName": "${env.login.username}", ///(string) user email
-		    "passWord": "${env.login.password}" ///(string) user password
+		    "userName": "${newUser.baseClass[0].username}",
+		    "passWord": "${newUser.baseClass[0].password}"
 			},
 			"var": "currentUser",
-			"apply": {
-				"currentUser": {
-					"baseClass": [
-						{
-							"id": "0631ef33-8952-4cc7-bc31-5053f5b935e8",
-							"aid": "0631ef33-8952-4cc7-bc31-5053f5b935e8", 
-							"token": "861dade60251b5019d5079107662eae6"
-						}
-					]
-				}
-			},
-			"expect": {
-				"status": 200,///(number) http status
-				"data": { ///(object) response data from server
-					"code!": "NG"	///(string) response code
+			"expect": {				
+				"status": [200, 201],
+				"data": {
+					"code!": "NG"
 				}
 			}
 		}

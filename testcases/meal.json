@@ -6,26 +6,98 @@
 			"method": "PUT",
 			"url": "${env.url}:${env.port}/whatseat/addMeal",
 			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
+		    "aid": "${currentUser.baseClass[0].aid}", 
 		    "token": "${currentUser.baseClass[0].token}",
 		    "meal": {
 		    	"cuisineId": "${listCuisines.baseClass[0].itemId}",
 		    	"enableReview": 0,
 					"itemDescription": "Meal description",
 					"photos": [
-						"6bffa660-1f7d- 4a4f-816c- 92597c55db89/1216697e-26a2- 41a5-beca-c37d5f01b7e7/v1.jpg",
-						"6bffa660-1f7d- 4a4f-816c- 92597c55db89/481e8e6d-6096- 4cb5-b003-4ca31ab48449/v2.jpg"
+						"http://meal-photo1.jpg",
+						"http://meal-photo2.jpg"
 					],
 					"title": "Meal title",
-					"place": "${listPlaces.baseClass[0]}"
+					"place": "${newPlace.baseClass[0]}"
 		    }
 			},
 			"var": "newMeal",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"$(string)",
+							"aid":"$(string)",
+							"userAvatar":"$(string)",
+							"userName":"$(string)",
+							"cuisineId":"${listCuisines.baseClass[0].itemId}",
+							"enableReview":0,
+							"itemDescription":"Meal description",
+							"place":{
+								"itemId":"$(string)",
+								"address":"$(string)",
+								"location": "$(^[\\d\\.]+?\\s?,\\s?[\\d\\.]+$)",
+								"title":"$(string)"
+							},
+							"nationality":"$(string)",
+							"photos":"$(array)",
+							"title":"$(string)",
+							"ratingScore":"$(number)",
+							"reviewScore":"$(number)",
+							"createDate":"$(string)",
+							"expiredDate":"$(string)",
+							"removeDate":"$(string)",
+							"state":"$(number)"
+						}
+					]
 				}
+			},
+			"doc": {
+				"body": "requestMeal",
+				"actual": "res|responseMeals"
+			}
+		},
+		{
+			"des": "Get detailed meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getDetailedMeal",
+			"body": {
+				"mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"${newMeal.baseClass[0].itemId}",
+							"aid":"${newMeal.baseClass[0].aid}",
+							"userAvatar":"${newMeal.baseClass[0].userAvatar}",
+							"userName":"${newMeal.baseClass[0].userName}",
+							"cuisineId":"${newMeal.baseClass[0].cuisineId}",
+							"enableReview":"${newMeal.baseClass[0].enableReview}",
+							"itemDescription":"${newMeal.baseClass[0].itemDescription}",
+							"place":{
+								"itemId":"${newMeal.baseClass[0].place.itemId}",
+								"address":"${newMeal.baseClass[0].place.address}",
+								"location": "${newMeal.baseClass[0].place.location}",
+								"title":"${newMeal.baseClass[0].place.title}"
+							},
+							"nationality":"${newMeal.baseClass[0].nationality}",
+							"photos":"${newMeal.baseClass[0].photos}",
+							"title":"${newMeal.baseClass[0].title}",
+							"ratingScore":"${newMeal.baseClass[0].ratingScore}",
+							"reviewScore":"${newMeal.baseClass[0].reviewScore}",
+							"createDate":"${newMeal.baseClass[0].createDate}",
+							"expiredDate":"${newMeal.baseClass[0].expiredDate}",
+							"removeDate":"${newMeal.baseClass[0].removeDate}",
+							"state":"${newMeal.baseClass[0].state}"
+						}
+					]
+				}
+			},
+			"doc": {
+				"body": "requestMeal",
+				"actual": "res|responseMeals"
 			}
 		},
 		{
@@ -36,24 +108,29 @@
 		    "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}",
 		    "meal": {
-		    	"itemId": "${newMeal.baseClass[0].itemId}",
-		    	"enableReview": 1,
-					"itemDescription": "Meal description updated",
+		    	"itemId":"${newMeal.baseClass[0].itemId}",
+					"accountName":"${newMeal.baseClass[0].userName}",
+					"cuisineId":"${newMeal.baseClass[0].cuisineId}",
+					"enableReview": 1,
+					"title":"${newMeal.baseClass[0].title} updated",
+					"itemDescription":"${newMeal.baseClass[0].itemDescription} updated",
+					"place":{
+						"itemId":"${newMeal.baseClass[0].place.itemId}",
+						"address":"${newMeal.baseClass[0].place.address} meal updated",
+						"location": "${newMeal.baseClass[0].place.location}",
+						"title":"${newMeal.baseClass[0].place.title} meal updated"
+					},
 					"photos": [
 						"6bffa660-1f7d- 4a4f-816c- 92597c55db89/1216697e-26a2- 41a5-beca-c37d5f01b7e7/v1.jpg",
 						"v1-updated.jpg",
 						"v2-updated.jpg"
-					],
-					"title": "Meal title updated",
-					"place": {
-			    	"title": "place of meal",
-			    	"address": "address of meal"
-			    }
+					],					
+					"ratingScore": 2,
+					"reviewScore": 3
 		    }
 			},
 			"var": "newMeal",
 			"expect": {
-				"status": 200,
 				"data": {
 					"code!": "NG",
 					"baseClass": [
@@ -61,18 +138,66 @@
 					    "aid": "${currentUser.baseClass[0].aid}",
 				    	"itemId": "${newMeal.baseClass[0].itemId}",
 				    	"enableReview": 1,
-							"itemDescription": "Meal description updated",
+				    	"cuisineId":"${newMeal.baseClass[0].cuisineId}",
+				    	"title":"${newMeal.baseClass[0].title} updated",
+							"itemDescription":"${newMeal.baseClass[0].itemDescription} updated",														
+							"place":{
+								"itemId":"${newMeal.baseClass[0].place.itemId}",
+								"address":"${newMeal.baseClass[0].place.address} meal updated",
+								"location": "${newMeal.baseClass[0].place.location}",
+								"title":"${newMeal.baseClass[0].place.title} meal updated"
+							},
 							"photos": [
 								"6bffa660-1f7d- 4a4f-816c- 92597c55db89/1216697e-26a2- 41a5-beca-c37d5f01b7e7/v1.jpg",
 								"v1-updated.jpg",
 								"v2-updated.jpg"
 							],
-							"title": "Meal title updated",
-							"place": {
-					    	"title": "place of meal",
-					    	"address": "address of meal"
-					    }
+							"ratingScore": 2,
+							"reviewScore": 3
 				   }
+					]
+				}
+			},
+			"doc": {
+				"body": "requestMeal",
+				"actual": "res|responseMeals"
+			}
+		},
+		{
+			"des": "Get detailed meal for checking update",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getDetailedMeal",
+			"body": {
+				"mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"${newMeal.baseClass[0].itemId}",
+							"aid":"${newMeal.baseClass[0].aid}",
+							"userAvatar":"${newMeal.baseClass[0].userAvatar}",
+							"userName":"${newMeal.baseClass[0].userName}",
+							"cuisineId":"${newMeal.baseClass[0].cuisineId}",
+							"enableReview":"${newMeal.baseClass[0].enableReview}",
+							"itemDescription":"${newMeal.baseClass[0].itemDescription}",
+							"place":{
+								"itemId":"${newMeal.baseClass[0].place.itemId}",
+								"address":"${newMeal.baseClass[0].place.address}",
+								"location": "${newMeal.baseClass[0].place.location}",
+								"title":"${newMeal.baseClass[0].place.title}"
+							},
+							"nationality":"${newMeal.baseClass[0].nationality}",
+							"photos":"${newMeal.baseClass[0].photos}",
+							"title":"${newMeal.baseClass[0].title}",
+							"ratingScore":"${newMeal.baseClass[0].ratingScore}",
+							"reviewScore":"${newMeal.baseClass[0].reviewScore}",
+							"createDate":"${newMeal.baseClass[0].createDate}",
+							"expiredDate":"${newMeal.baseClass[0].expiredDate}",
+							"removeDate":"${newMeal.baseClass[0].removeDate}",
+							"state":"${newMeal.baseClass[0].state}"
+						}
 					]
 				}
 			}
@@ -81,12 +206,34 @@
 			"des": "Get all meal",
 			"method": "POST",
 			"url": "${env.url}:${env.port}/whatseat/getAllMeals",
-			"var": "listMeals",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"$(string)",
+							"aid":"$(string)",
+							"userAvatar":"$(string)",
+							"userName":"$(string)",
+							"cuisineId":"${listCuisines.baseClass[0].itemId}",
+							"itemDescription":"$(string)",
+							"place":{
+								"itemId":"$(string)",
+								"address":"$(string)",
+								"location": "$(^[\\d\\.]+?\\s?,\\s?[\\d\\.]+$)",
+								"title":"$(string)"
+							},
+							"nationality":"$(string)",
+							"photos":"$(array)",
+							"title":"$(string)",
+							"ratingScore":"$(number)",
+							"reviewScore":"$(number)"
+						}
+					]
 				}
+			},
+			"doc": {
+				"actual": "res|responseMeals"
 			}
 		},
 		{
@@ -97,10 +244,34 @@
 		    "aid": "${currentUser.baseClass[0].aid}"
 			},
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"${newMeal.baseClass[0].itemId}",
+							"aid":"${newMeal.baseClass[0].aid}",
+							"userAvatar":"${newMeal.baseClass[0].userAvatar}",
+							"userName":"${newMeal.baseClass[0].userName}",
+							"cuisineId":"${newMeal.baseClass[0].cuisineId}",
+							"itemDescription":"${newMeal.baseClass[0].itemDescription}",
+							"place":{
+								"itemId":"${newMeal.baseClass[0].place.itemId}",
+								"address":"${newMeal.baseClass[0].place.address}",
+								"location": "${newMeal.baseClass[0].place.location}",
+								"title":"${newMeal.baseClass[0].place.title}"
+							},
+							"nationality":"${newMeal.baseClass[0].nationality}",
+							"photos":"${newMeal.baseClass[0].photos}",
+							"title":"${newMeal.baseClass[0].title}",
+							"ratingScore":"${newMeal.baseClass[0].ratingScore}",
+							"reviewScore":"${newMeal.baseClass[0].reviewScore}"
+						}
+					]
 				}
+			},
+			"doc": {
+				"body": "requestMeal",
+				"actual": "res|responseMeals"
 			}
 		},
 		{
@@ -112,41 +283,35 @@
 					"${newMeal.baseClass[0].itemId}"
 				]
 			},
-			"expect": {
-				"status": 200,
+			"expect": {				
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"${newMeal.baseClass[0].itemId}",
+							"aid":"${newMeal.baseClass[0].aid}",
+							"userAvatar":"${newMeal.baseClass[0].userAvatar}",
+							"userName":"${newMeal.baseClass[0].userName}",
+							"cuisineId":"${newMeal.baseClass[0].cuisineId}",
+							"itemDescription":"${newMeal.baseClass[0].itemDescription}",
+							"place":{
+								"itemId":"${newMeal.baseClass[0].place.itemId}",
+								"address":"${newMeal.baseClass[0].place.address}",
+								"location": "${newMeal.baseClass[0].place.location}",
+								"title":"${newMeal.baseClass[0].place.title}"
+							},
+							"nationality":"${newMeal.baseClass[0].nationality}",
+							"photos":"${newMeal.baseClass[0].photos}",
+							"title":"${newMeal.baseClass[0].title}",
+							"ratingScore":"${newMeal.baseClass[0].ratingScore}",
+							"reviewScore":"${newMeal.baseClass[0].reviewScore}"
+						}
+					]
 				}
-			}
-		},
-		{
-			"des": "Get detailed meal",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/getDetailedMeal",
-			"body": {
-				"mealId": "${newMeal.baseClass[0].itemId}"
 			},
-			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Get detailed meals",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/getDetailedMeals",
-			"body": {
-				"mealsId": [
-					"${newMeal.baseClass[0].itemId}"
-				]
-			},
-			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
-				}
+			"doc": {
+				"body": "requestMeal",
+				"actual": "res|responseMeals"
 			}
 		},
 		{
@@ -157,10 +322,34 @@
 				"keyword": "meal"
 			},
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"itemId":"$(string)",
+							"aid":"$(string)",
+							"userAvatar":"$(string)",
+							"userName":"$(string)",
+							"cuisineId":"${listCuisines.baseClass[0].itemId}",
+							"itemDescription":"$(/.*?Meal description.*/i)",
+							"place":{
+								"itemId":"$(string)",
+								"address":"$(string)",
+								"location": "$(^[\\d\\.]+?\\s?,\\s?[\\d\\.]+$)",
+								"title":"$(string)"
+							},
+							"nationality":"$(string)",
+							"photos":"$(array)",
+							"title":"$(.*?meal.*)",
+							"ratingScore":"$(number)",
+							"reviewScore":"$(number)"
+						}
+					]
 				}
+			},
+			"doc": {
+				"body": "requestMeal",
+				"actual": "res|responseMeals"
 			}
 		},
 		{
@@ -170,15 +359,92 @@
 			"body": {
 				"aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}",
-		    "mealId": "${listMeals.baseClass[0].itemId}",
+		    "mealId": "${newMeal.baseClass[0].itemId}",
 		    "rating": 3, 
 		    "review": "My comment"
 			},
 			"var": "newMealReview",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass": [
+						{
+							"rating": 3,
+							"review": "My comment",
+							"aid": "${currentUser.baseClass[0].aid}",
+							"createDate": "$(string)",
+							"itemId": "$(string)",
+							"objectId": "${newMeal.baseClass[0].itemId}",
+							"typeReview": "$(number)",							
+							"userName": "${currentUser.baseClass[0].userName}",
+							"userAvatar": "$(string)"
+						}
+					]
+				}
+			},
+			"doc": {
+				"body": "requestReviewMeal",
+				"actual": "res|reviews"
+			}
+		},		
+		{
+			"des": "Get all review meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/getAllReviews",
+			"body": {
+				"mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"rating": "${newMealReview.baseClass[0].rating}",
+							"review": "${newMealReview.baseClass[0].review}",
+							"aid": "${newMealReview.baseClass[0].aid}",
+							"createDate": "${newMealReview.baseClass[0].createDate}",
+							"itemId": "${newMealReview.baseClass[0].itemId}",
+							"objectId": "${newMealReview.baseClass[0].objectId}",
+							"typeReview": "${newMealReview.baseClass[0].typeReview}",
+							"userName": "${newMealReview.baseClass[0].userName}",
+							"userAvatar": "${newMealReview.baseClass[0].userAvatar}"
+						}
+					]
+				}
+			},
+			"doc": {
+				"body": "requestReviewMeal",
+				"actual": "res|reviews"
+			}
+		},
+		{
+			"des": "Add review",
+			"method": "PUT",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/addReview",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "mealId": "${newMeal.baseClass[0].itemId}",
+		    "rating": 3, 
+		    "review": "My comment"
+			},
+			"var": "newMealReview2",
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"rating": 3,
+							"review": "My comment",
+							"aid": "${currentUser.baseClass[0].aid}",
+							"createDate": "$(string)",
+							"itemId": "$(string)",
+							"objectId": "${newMeal.baseClass[0].itemId}",
+							"typeReview": "$(number)",							
+							"userName": "${currentUser.baseClass[0].userName}",
+							"userAvatar": "$(string)"
+						}
+					]
 				}
 			}
 		},
@@ -194,99 +460,52 @@
 		    "review": "My comment updated"
 			},
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG",
+					"code": "OK",
 					"baseClass": [
 						{
 							"rating": 4,
-							"review": "My comment updated"
+							"review": "My comment updated",
+							"aid": "${currentUser.baseClass[0].aid}",
+							"createDate": "$(string)",
+							"itemId": "${newMealReview.baseClass[0].itemId}",
+							"objectId": "${newMeal.baseClass[0].itemId}",
+							"typeReview": "$(number)",							
+							"userName": "${currentUser.baseClass[0].userName}",
+							"userAvatar": "$(string)"
 						}
 					]
 				}
 			},
-			"apply": {
-				"newMealReview": {
-					"baseClass": [
-						{
-							"rating": 4,
-							"review": "My comment updated"
-						}
-					]
-				}
+			"var": "newMealReview",
+			"doc": {
+				"body": "requestReviewMeal",
+				"actual": "res|reviews"
 			}
 		},
 		{
-			"des": "Get all review meal",
+			"des": "Get all review meal for checking update",
 			"method": "POST",
 			"url": "${env.url}:${env.port}/whatseat/review/meal/getAllReviews",
 			"body": {
-				"mealId": "${newMealReview.baseClass[0].itemId}"
+				"mealId": "${newMeal.baseClass[0].itemId}"
 			},
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Delete review meal",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/review/meal/deleteReview",
-			"body": {
-				"aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-				"itemId": "${newMealReview.baseClass[0].itemId}"
-			},
-			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Get all meal",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/getAllMeals",
-			"var": "listMeals",
-			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Delete review by meal ID",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/review/meal/deleteReviewByOId",
-			"body": {
-				"aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-				"objectId": "${newMeal.baseClass[0].itemId}"
-			},
-			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
-				}
-			}
-		},
-		{
-			"des": "Delete meal",
-			"method": "POST",
-			"url": "${env.url}:${env.port}/whatseat/deleteMeal",
-			"body": {
-		    "aid": "${currentUser.baseClass[0].aid}",
-		    "token": "${currentUser.baseClass[0].token}",
-		    "mealId": "${newMeal.baseClass[0].itemId}"
-			},
-			"expect": {
-				"status": 200,
-				"data": {
-					"code!": "NG"
+					"code": "OK",
+					"baseClass:": [
+						{
+							"rating": "${newMealReview.baseClass[0].rating}",
+							"review": "${newMealReview.baseClass[0].review}",
+							"aid": "${newMealReview.baseClass[0].aid}",
+							"createDate": "${newMealReview.baseClass[0].createDate}",
+							"itemId": "${newMealReview.baseClass[0].itemId}",
+							"objectId": "${newMealReview.baseClass[0].objectId}",
+							"typeReview": "${newMealReview.baseClass[0].typeReview}",
+							"userName": "${newMealReview.baseClass[0].userName}",
+							"userAvatar": "${newMealReview.baseClass[0].userAvatar}"
+						}
+					]
 				}
 			}
 		}
