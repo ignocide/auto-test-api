@@ -1,9 +1,9 @@
 <html ng-app="my-app">
 	<head>
-		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min.js"></script>
-		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-		<link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.indigo-pink.min.css">
-		<script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+		<script src="assets/angular.min.js"></script>
+		<link rel="stylesheet" href="assets/font.css">
+		<link rel="stylesheet" href="assets/material.indigo-pink.min.css">
+		<script defer src="assets/material.min.js"></script>
 		<style type="text/css">
 			td {
 				vertical-align: top !important;				
@@ -55,104 +55,151 @@
 				list-style: decimal !important;
 			}
 			.mdl-dialog__content{
+				overflow-x: hidden;
 				overflow-y: auto;
 		    max-height: 500px;
 		  }
+		  .method-get {
+				background-color: #660A9A !important;
+			}
+			.method-put {
+				background-color: #008F94 !important;
+			}
+			.method-delete {
+				background-color: #000000 !important;
+			}
+			.method-head {
+				background-color: #B31A1A !important;
+			}
+			.method-post {
+				background-color: #002294 !important;	
+			}
+			.method {
+				background-color: #949412;
+				padding: 3px; 
+				color: white; 
+				border-radius: 5px;
+			}
+			.passed .scols {
+				color: green;
+			}
+			.failed .scols {
+				color: red;
+			}
+			.copy:active {
+				font-weight: bold;
+			}
+			.copy {
+		    float: right;
+		    z-index: 100;
+		    position: relative;
+		    border-radius: 4px;
+		    border: solid 1px black;
+		    padding: 4px 10px;
+		    cursor: pointer;
+			}
+			pre {
+		    white-space: pre-wrap;       /* CSS 3 */
+		    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+		    white-space: -pre-wrap;      /* Opera 4-6 */
+		    white-space: -o-pre-wrap;    /* Opera 7 */
+		    word-wrap: break-word;       /* Internet Explorer 5.5+ */
+			}
 		</style>
 	</head>
-	<body ng-controller="TestResultController" style="padding: 10px;">
-	<!-- Always shows a header, even in smaller screens. -->
-	<div class="mdl-layout mdl-js-layout">
-	  <header class="mdl-layout__header">
-	    <div class="mdl-layout__header-row">
-	      <span class="mdl-layout-title">
-					<h2><small>Specific document for </small> {{data.project}} <small>APIs</small></h2>
-	      </span>	      
-	      <div class="mdl-layout-spacer"></div>	      	      
-	    </div>
-	  </header>
-  </div>
-  <main>
+
+	<body ng-controller="TestResultController">
+	<main>
     <div class="page-content">
-    	<br/><br/><br/><br/>
-			<ul class="mdl-components__warning" style="color: orange;">
-				<li ng-repeat="w in data.warning" ng-bind="w"></li>
-			</ul>
-			<hr/>
-			<div ng-repeat="testcase in data.testcases">
-				<h4 id="tc{{testcase.id}}" style="padding: 5px 20px;"><b>#</b> {{testcase.title}}</h4>
-				<div style="padding: 10px;">
-					<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" width="100%" ng-repeat="api in testcase.api" id="api{{api.id}}" ng-if="api['@body'] || api['@actual']">
-						<thead>
-							<tr>
-								<th class="mdl-data-table__cell--non-numeric">
-									<h6><b ng-bind="$index+1"></b> {{api.des}}</h6>
-									<h6 style="color: {{api.resultTest ? (api.resultTest.pass ? 'green' : 'red') : ''}}">
-										<b ng-bind="api.method.toUpperCase()" style="    background-color: black; padding: 3px; color: white; border-radius: 5px;"></b> 
-										<span ng-bind="api._url ? api._url : api.url"></span></h6></a>
-								</th>
-							</tr>
-						</thead>
-						<tbody style="background-color: #f6f6f6;">
-							<tr>
-								<td class="mdl-data-table__cell--non-numeric">							
-									<div class="mdl-grid">
-									  <div class="mdl-cell mdl-cell--6-col">
-											<h6>Request data</h6>
-											<pre class="mbox">{{api['_body'] | json}}</pre>							  	
-									  </div>
-									  <div class="mdl-cell mdl-cell--6-col">
-											<h6>Request description</h6>
-											<div class="jsonViewActual">
-												<json-viewer data="api['@body']" class="mbox"></json-viewer>  	
-											</div>
-									  </div>
-									</div>
-									<div class="mdl-grid">
-									  <div class="mdl-cell mdl-cell--6-col">
-											<h6>Response data</h6>
-											<pre class="mbox">{{api['#actual'] | json}}</pre>							
-									  </div>
-									  <div class="mdl-cell mdl-cell--6-col">
-											<h6>Response description</h6>
-											<div class="jsonViewActual">
-												<json-viewer data="api['@actual']" class="mbox"></json-viewer>
-											</div>
-									  </div>
-									</div>
-								</td>						
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-			<br/><br/><br/>	
-			<button id="show-dialog" type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-			  <i class="material-icons">bookmark</i>
-			</button>
-		  <dialog class="mdl-dialog">
-		    <h4 class="mdl-dialog__title">List APIs</h4>
-		    <div class="mdl-dialog__content">
-		      <ul style="width: 100%">
-					  <li ng-repeat="testcase in data.testcases" style="width: 100%">
+	    <!-- No header, and the drawer stays open on larger screens (fixed drawer). -->
+			<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer">
+				<div class="mdl-layout__drawer">
+			    <span class="mdl-layout-title">Bookmark</span>
+			    <nav class="mdl-navigation">
+			      <div ng-repeat="testcase in data.testcases" style="padding: 10px;">
 					  	{{testcase.title}}
 							<ul>
 							  <li ng-repeat="api in testcase.api" ng-if="api['@body'] || api['@actual']"><a href="#api{{api.id}}">{{api.des}}</a></li>
 							</ul>  
-						</li>
-					</ul>
-		    </div>
-		    <div class="mdl-dialog__actions">
-		      <button type="button" class="mdl-button close">Close</button>
-		    </div>
-		  </dialog>
-		  <footer class="mdl-mega-footer">
-		    <div class="mdl-mega-footer--bottom-section">
-		      <div class="mdl-logo">
-		        {{data.team}}
-		      </div>
-		    </div>
-		  </footer>
+						</div>
+			    </nav>
+			  </div>
+			  <main class="mdl-layout__content">
+			    <div class="page-content">
+			    	<header class="mdl-layout__header">
+					    <div class="mdl-layout__header-row">
+					      <span class="mdl-layout-title">
+									<h2><small>Specific document for </small> {{data.project}} <small>APIs</small></h2>
+					      </span>	      
+					      <div class="mdl-layout-spacer"></div>	      	      
+					    </div>
+					  </header>
+			    	<div ng-repeat="testcase in data.testcases">
+							<h4 id="tc{{testcase.id}}" style="padding: 5px 20px;"><b>#</b> {{testcase.title}}</h4>
+							<div>
+								<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp" width="100%" ng-repeat="api in testcase.api" id="api{{api.id}}" ng-if="api['@body'] || api['@actual']">
+									<thead>
+										<tr>
+											<th class="mdl-data-table__cell--non-numeric">
+												<h6><b ng-bind="$index+1"></b> {{api.des}}</h6>
+												<h6 class="{{api.resultTest ? (api.resultTest.pass ? 'passed' : 'failed') : ''}}">
+													<b class="method method-{{api.method.toLowerCase()}}">{{api.method.toUpperCase()}}</b>
+													<span id="{{api.id}}" ng-bind="api._url ? api._url : api.url" class="scols" title="{{api.resultTest.des}}" ng-click="selectText(api.id)" style="cursor: pointer;"></span>
+													<small>Click me to copy</small>
+													<div class="mdl-tooltip {{!isCopied ? 'hidden' : ''}}" for="{{api.id}}">
+													 Copied
+													</div>
+			</h6></a>
+											</th>
+										</tr>
+									</thead>
+									<tbody style="background-color: #f6f6f6;">						
+										<tr>
+											<td class="mdl-data-table__cell--non-numeric">							
+												<div class="mdl-grid">
+												  <div class="mdl-cell mdl-cell--6-col">									  
+														<h6>Request data</h6>								
+														<button class="copy" id="btnRequestData{{api.id}}" ng-click="selectText('requestData' + api.id)">Copy</button> 		<div class="mdl-tooltip {{!isCopied ? 'hidden' : ''}}" for="btnRequestData{{api.id}}">
+														 Copied
+														</div>
+														<pre class="mbox" id="requestData{{api.id}}">{{api['_body'] | json}}</pre>											
+												  </div>
+												  <div class="mdl-cell mdl-cell--6-col">
+														<h6>Request description</h6>
+														<div class="jsonViewActual">
+															<json-viewer data="api['@body']" class="mbox"></json-viewer>  	
+														</div>
+												  </div>
+												</div>
+												<div class="mdl-grid">
+												  <div class="mdl-cell mdl-cell--6-col">
+														<h6>Response data</h6>
+														<pre class="mbox">{{api['#actual'] | json}}</pre>							
+												  </div>
+												  <div class="mdl-cell mdl-cell--6-col">
+														<h6>Response description</h6>
+														<div class="jsonViewActual">
+															<json-viewer data="api['@actual']" class="mbox"></json-viewer>
+														</div>
+												  </div>
+												</div>
+											</td>						
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<br/><br/><br/>							
+					  <footer class="mdl-mega-footer">
+					    <div class="mdl-mega-footer--bottom-section">
+					      <div class="mdl-logo">
+					        {{data.team}}
+					      </div>
+					    </div>
+					  </footer>
+			    </div>
+			  </main>
+			</div>			
     </div>
   </main>
 	</body>
@@ -160,17 +207,43 @@
 		angular.module('my-app', [])
 		  .controller('TestResultController', function($scope, $http) {
 		    $scope.data = $data;
-		    var dialog = document.querySelector('dialog');
-		    var showDialogButton = document.querySelector('#show-dialog');
-		    if (! dialog.showModal) {
-		      dialogPolyfill.registerDialog(dialog);
+		    var copy = function(){
+		    	try {
+				    return document.execCommand('copy');
+				  } catch (err) {
+				  }
+				  return false;
+		    };
+		    $scope.selectText = function(target){	
+		    	target = typeof(target) == 'string' ? document.getElementById(target) : target;	    	
+		    	if (document.selection) {
+            var range = document.body.createTextRange();
+            range.moveToElementText(target);
+            range.select();
+            if(copy()){
+            	document.selection.empty();
+            	$scope.isCopied = true;
+            	setTimeout(function(){
+            		$scope.$apply(function(){
+            			delete $scope.isCopied;
+            		});
+            	}, 500);
+            }
+	        } else if (window.getSelection) {
+	            var range = document.createRange();
+	            range.selectNode(target);
+	            window.getSelection().addRange(range);
+	            if(copy()){
+	            	window.getSelection().removeAllRanges();
+	            	$scope.isCopied = true;
+	            	setTimeout(function(){
+	            		$scope.$apply(function(){
+	            			delete $scope.isCopied;
+	            		});
+	            	}, 500);
+	            }
+	        }
 		    }
-		    showDialogButton.addEventListener('click', function() {
-		      dialog.showModal();
-		    });
-		    dialog.querySelector('.close').addEventListener('click', function() {
-		      dialog.close();
-		    });
 		  })
 		  .directive('jsonViewer', function() {
 			  return {

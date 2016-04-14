@@ -4,6 +4,7 @@ var vs = {};
 var root = {};
 var impactVariable = {};
 var keywords = ['env', 'doc', 'utils', 'headers'];
+var executeType = -1; // -1: 'stopWhenFail', 0: 'continueWhenFail', 1: 'playOnly1'
 var testResult = {
 	current: {
 		testcasesIndex: 0,
@@ -16,7 +17,8 @@ var initUtilsVariable = function(){
 	vs.utils = {
 		uniqueId: function() {
 			return new Date().getTime();
-		}
+		},
+		null: null
 	}
 }
 
@@ -230,72 +232,175 @@ var request = function(fcDone, method, url, body, headers){
 	}
 };
 
-var error = function(des){
-	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
-	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des = typeof(des) == 'object' ? JSON.stringify(des) : des;
+var error = function(des, isOnlyCheck){
+	if(!isOnlyCheck){
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des += typeof(des) == 'object' ? JSON.stringify(des) : des + '\n';
+	}
 };
 
-var compareObj = function(o, n, fcDone){	
+var compareObj = function(o, n, isOnlyCheck){	
 	for(var i in n){
-		var g = i.match(/[\*!:]+/);
+		var g = i.match(/[\*!:?]+/);
 		if(g != null){
-			var io = i.substr(0, i.indexOf(g[0]));
+			var io = i.match(/\w+/)[0];
 			if(g[0] == '*'){
 				if(!o[io]){
-					error("Expected: " + io + " must be something, Actual: " + io + " is nothing");
+					error("Expected: " + io + " must be something, Actual: " + io + " is nothing", isOnlyCheck);
 					return true;
 				}
 			}
 			if(n[i] instanceof Array){				
 				if(g[0] == ':'){
-					if(o[io] instanceof Array){
-						for(var j in o[io]){
-							if(n[i].indexOf(o[io][j]) == -1){
-								error("Expected: " + io + " in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
-								return false;
-							}	
+					if(i.indexOf(g[0]) == 0){
+						// Actual data in array expect data
+						// if(o[io] instanceof Array){
+						// 	for(var j in o[io]){
+						// 		if(n[i].indexOf(o[io][j]) == -1){
+						// 			error("Expected: " + io + " in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+						// 			return false;
+						// 		}	
+						// 	}
+						// }else{
+						// 	if(n[i].indexOf(o[io]) == -1){
+						// 		error("Expected: " + io + " in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+						// 		return false;
+						// 	}
+						// }
+						// Expect data in array actual data
+						if(n[i] instanceof Array){
+							for(var j in o[io]){
+								var isExisted = false;								
+								for(var k in n[i]){
+									if(compareObj(o[io][j], n[i][k], true)){
+										isExisted = true;
+										break;										
+									}
+								}
+								if(!isExisted){
+									error("Expected: Expect array data is contains actual array data, Actual: Reversed", isOnlyCheck);
+									return false;
+								}
+							}
+						}else{
+							var isExisted = false;
+							for(var j in o[io]){							
+								if(!compareObj(o[io][j], n[i][k], true)){
+									error("Expected: Expect array data is contains actual data, Actual: Reversed", isOnlyCheck);
+									return false;		
+								}
+							}
 						}
 					}else{
-						if(n[i].indexOf(o[io]) == -1){
-							error("Expected: " + io + " in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
-							return false;
+						// Expect data in array actual data
+						if(n[i] instanceof Array){
+							for(var k in n[i]){
+								var isExisted = false;
+								for(var j in o[io]){							
+									if(compareObj(o[io][j], n[i][k], true)){
+										isExisted = true;
+										break;										
+									}
+								}
+								if(!isExisted){
+									error("Expected: Actual array data is contains expect array data, Actual: Reversed", isOnlyCheck);
+									return false;
+								}
+							}
+						}else{
+							var isExisted = false;
+							for(var j in o[io]){							
+								if(compareObj(o[io][j], n[i][k], true)){
+									isExisted = true;
+									break;										
+								}
+							}
+							if(!isExisted){
+								error("Expected: Actual array data is contains expect data, Actual: Reversed", isOnlyCheck);
+								return false;
+							}
 						}
 					}
 				}else if(g[0] == '!:'){
-					if(o[io] instanceof Array){
-						for(var j in o[io]){
-							if(n[i].indexOf(o[io][j]) != -1){
-								error("Expected: " + io + " not in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
-								return false;
-							}	
+					if(i.indexOf(g[0]) == 0){
+						// Actual data not in array expect data
+						// if(o[io] instanceof Array){
+						// 	for(var j in o[io]){
+						// 		if(n[i].indexOf(o[io][j]) != -1){
+						// 			error("Expected: " + io + " not in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+						// 			return false;
+						// 		}	
+						// 	}
+						// }else{
+						// 	if(n[i].indexOf(o[io]) != -1){
+						// 		error("Expected: " + io + " not in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+						// 		return false;
+						// 	}
+						// }
+						// Expect data not in array actual data
+						if(n[i] instanceof Array){							
+							for(var j in o[io]){							
+								for(var k in n[i]){
+									if(compareObj(o[io][j], n[i][k], true)){
+										error("Expected: Expect array data is not contains actual array data, Actual: Reversed", isOnlyCheck);
+										return false;
+									}
+								}
+							}
+						}else{
+							for(var j in o[io]){							
+								if(compareObj(o[io][j], n[i][k], true)){
+									error("Expected: Expect array data is not contains actual data, Actual: Reversed", isOnlyCheck);
+									return false;
+								}
+							}
 						}
 					}else{
-						if(n[i].indexOf(o[io]) != -1){
-							error("Expected: " + io + " not in \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
-							return false;
+						// Expect data not in array actual data
+						if(n[i] instanceof Array){
+							for(var k in n[i]){
+								for(var j in o[io]){							
+									if(compareObj(o[io][j], n[i][k], true)){
+										error("Expected: Actual array data is not contains expect array data, Actual: Reversed", isOnlyCheck);
+										return false;
+									}
+								}
+							}
+						}else{
+							for(var j in o[io]){							
+								if(compareObj(o[io][j], n[i][k], true)){
+									error("Expected: Actual array data is not contains expect data, Actual: Reversed", isOnlyCheck);
+									return false;
+								}
+							}
 						}
 					}
 				}
 			}else if(n[i] instanceof Object){
-				return compareObj(o[i], n[i]);
+				return compareObj(o[i], n[i], isOnlyCheck);
 			}else {
 				if(g[0] == '!'){
 					if(n[i] == o[io]){
-						error("Expected: " + io + " != \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"");
+						error("Expected: " + io + " != \"" + n[i]+"\", Actual: " + io + " = \"" + o[io] + "\"", isOnlyCheck);
+						return false;
+					}
+				}else if(g[0] == '?'){
+					if(n[i] != o[io].length){
+						error("Expected: Number of items in response data is " + n[i] + ", Actual: number of items in response data is " + o[io].length, isOnlyCheck);
 						return false;
 					}
 				}
 			}
 		}else{
 			if(n[i] instanceof Object){				
-				return compareObj(o[i], n[i]);
+				return compareObj(o[i], n[i], isOnlyCheck);
 			}else {
 				try{
 					if(n[i] == undefined){
-						error("There is not field \"" + i + "\" in expected data");
+						error("There is not field \"" + i + "\" in expected data", isOnlyCheck);
 						return false;
 					}else if(o[i] == undefined){
-						error("There is not field \"" + i + "\" in actual data");
+						error("There is not field \"" + i + "\" in actual data", isOnlyCheck);
 						return false;
 					}else{ 
 						if(typeof(n[i]) == 'string'){							
@@ -307,46 +412,56 @@ var compareObj = function(o, n, fcDone){
 								// }else 
 								if(matchRegex[1] == 'string'){
 									if(typeof(o[i]) != 'string'){
-										error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[i]));
+										error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
 										return false;
 									}
 								}else if(matchRegex[1] == 'number'){
 									if(typeof(o[i]) != 'number'){
-										error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[i]));
+										error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
 										return false;
 									}
 								}else if(matchRegex[1] == 'object'){
 									if(!(o[i] instanceof Object)){
-										error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])));
+										error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])), isOnlyCheck);
 										return false;
 									}
 								}else if(matchRegex[1] == 'array'){
 									if(!(o[i] instanceof Array)){
-										error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[i] instanceof Object ? "object" : typeof(o[i])));
+										error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[i] instanceof Object ? "object" : typeof(o[i])), isOnlyCheck);
 										return false;
 									}
-								}else if(!new RegExp(matchRegex[1]).test(o[i])){
-									error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is " + o[i]);
-									return false;
+								}else {
+									var regex = matchRegex[1];
+									if(regex.indexOf('/') == 0){
+										regex = regex.match(/\/(.*?)\/(.+)/);
+										regex = new RegExp(regex[1], regex[2] ? regex[2] : '');
+										debugger;
+									}else{
+										regex = new RegExp(regex);
+									}
+									if(!regex.test(o[i])){
+										error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is \"" + o[i] + "\"", isOnlyCheck);
+										return false;
+									}
 								}
 							}else if(n[i] != o[i]){
-								error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+								error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"", isOnlyCheck);
 								return false;
 							}
 						}else if(n[i] != o[i]){
-							error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"");
+							error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"", isOnlyCheck);
 							return false;
 						}
 					}
 				}catch(e){
 					if(o == null){
-						error("Value of \"" + i + "\" is null in actual data");
+						error("Value of \"" + i + "\" is null in actual data", isOnlyCheck);
 						return false;
 					}else if(n == null){
-						error("Value of \"" + i + "\" is null in expected data");
+						error("Value of \"" + i + "\" is null in expected data", isOnlyCheck);
 						return false;
 					}
-					error(e);
+					error(e, isOnlyCheck);
 					return false;
 				}
 			}
@@ -364,11 +479,10 @@ var reqApi = function(apis, cur, fcDone){
 	console.log('> ' + api.method + ' ' + api.url);
 	testResult.current.apiIndex = cur;
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id = "N-" + testResult.current.apiUniqueId++;
-	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest = {};
+	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest = {des: ""};
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start = new Date().getTime();
 	if(!root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers)
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers = vs.headers;
-
 	request(function(res){
 		if(api.var) {
 			if(impactVariable[api.var]) {
@@ -379,6 +493,16 @@ var reqApi = function(apis, cur, fcDone){
 		}
 		if(res){
 			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {status: res.statusCode, data: null, html: res.raw_body};
+			try{
+				var rs = JSON.parse(res.raw_body.toString());
+				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
+				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);							
+			}catch(e){
+				if(res.raw_body){
+					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.raw_body.toString();
+					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(res.raw_body.toString());
+				}
+			}
 			if(!res.error) {
 				if(!api.expect.status){
 					if(root.status) api.expect.status = root.status;
@@ -397,34 +521,28 @@ var reqApi = function(apis, cur, fcDone){
 				if(api.expect.data){					
 					if(typeof(api.expect.data) == 'object'){
 						try{
-							api.expect.data = handleBody(api.expect.data);
-							var rs = JSON.parse(res.raw_body.toString());
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);
-							if(compareObj(rs, api.expect.data)){
+							api.expect.data = handleBody(api.expect.data);														
+							if(compareObj(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data, api.expect.data)){
 								if(api.var){
 									if(keywords.indexOf(api.var) != -1){
 										console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
 										throw 'Variable name is same keywords';
 									}
-					  			vs[api.var] = rs;				  							  			
+					  			vs[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data;
 					  		}
 							}
 						}catch(e){
 							console.error(e);
 						}
 					}else {
-						var rs = res.raw_body;
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);
-						if(rs != api.data){
-							error("Expected: \"" + api.data + "\", Actual: \"" + rs + "\"");
+						if(res.raw_body != api.data){
+							error("Expected: \"" + api.data + "\", Actual: \"" + res.raw_body + "\"");
 						}else if(api.var){
 							if(keywords.indexOf(api.var) != -1){
 								console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
 								throw 'Variable name is same keywords';
 							}
-		  				vs[api.var] = rs;		  				
+		  				vs[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data;
 		  			}
 					}
 				}				
@@ -480,7 +598,10 @@ var reqApi = function(apis, cur, fcDone){
 			root.testcases[testResult.current.testcasesIndex].fail++;
 			root.fail++;
 		}
-		reqApi(apis, ++cur, fcDone);
+		if(executeType != 1)
+			reqApi(apis, ++cur, fcDone);
+		else if(fcDone)
+			fcDone();
 	}, api.method, api.url, api.body, api.headers);
 }
 
@@ -503,6 +624,7 @@ exports.execute = function(file, exportType){
 	console.log("Testcase file: " + file)
 	prehandleFile(file, function(err, root0) {
 		root = root0;
+		root.start = new Date().getTime();
 		root.pass = 0;
 		root.fail = 0;
 		
@@ -532,11 +654,15 @@ exports.execute = function(file, exportType){
 				root.testcases[testResult.current.testcasesIndex].pass = 0;
 				root.testcases[testResult.current.testcasesIndex].fail = 0;
 		  	reqApi(root.testcases[cur].api, 0, function(){
-		  		runTestCase(tcs, ++cur, fcDone);
+		  		if(executeType == 1 && fcDone)
+		  			fcDone();
+		  		else
+		  			runTestCase(tcs, ++cur, fcDone);
 		  	});
 			});			
 	  }
-	  runTestCase(root.testcases, 0, function(){
+	  runTestCase(root.testcases, 0, function(){	  	
+	  	root.stop = new Date().getTime();
 	  	if(exportType == 'doc'){
 		  	fs.readFile(__dirname + '/_doc.template', 'utf-8', function(err, data){
 		  		if(err) return console.error(err);
@@ -556,7 +682,7 @@ exports.execute = function(file, exportType){
 				    if(err) return console.error(err);
 				    console.log('\n\n***** Please see test result in "' + root.project + '.result.html".');
 
-				    require('http').createServer(function(req, res){			    	
+				    require('http').createServer(function(req, res){			    					    	
 				      if(req.url == '/result'){
 								res.writeHead(200, {
 				         	'Content-Type': 'application/json',
@@ -564,7 +690,20 @@ exports.execute = function(file, exportType){
 				         	'Access-Control-Request-Method': 'GET'
 				      	});
 				      	res.end(JSON.stringify(root));
+				      }else if(req.url == '/exportDoc'){
+				      	fs.readFile(__dirname + '/_doc.template', 'utf-8', function(err, data){
+						  		if(err) return console.error(err);
+						  		data = data.replace('$data', JSON.stringify(root));
+						  		fs.writeFile(root.project + ".doc.html", data, function(err) {
+								    if(err) return console.error(err);
+								    console.log('\n\n***** Please see test result in "' + root.project + '.doc.html".');
+								    var open = require('open');
+				    				open(root.project + '.doc.html');
+				    				res.end(root.project + '.doc.html');
+									}); 
+						  	});
 				      }else {
+				      	executeType = 1;
 				      	var regex = req.url.toString().match(/\/request\/([^\/]+)\/([^\/]+)/);
 				      	testResult.current.testcasesIndex = parseInt(regex[1]);
 				      	reqApi(root.testcases[testResult.current.testcasesIndex].api, parseInt(regex[2]), function(){
