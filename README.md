@@ -217,6 +217,11 @@ In expect field
 "!:menu": ["food", "warter", "rice"] // check actual data must be NOT in food, warter, rice
 "menu:": ["food", "warter"] // ":" at the last means that IN. It will check food, warter must existed in actual data(response data)
 "hobby?": 3 // Hobby in response is array. "?" mean that LENGTH. It'll check number of items in hoppy is 3 items
+"$(string*)" // return value type must be string or null
+"$(number*)" // return value type must be number or null
+"$(object*)" // return value type must be object or null
+"$(array*)" // return value type must be array or null
+"$(*)" // return value is anything
 
 ```
 
