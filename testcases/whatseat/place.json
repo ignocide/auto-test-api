@@ -374,10 +374,6 @@
 						"${newReviewPlace1.baseClass[0]}"						
 					]
 				}
-			},
-			"doc": {
-				"body": "requestReviewPlace",
-				"actual": "res|reviews"	
 			}
 		},
 		{
