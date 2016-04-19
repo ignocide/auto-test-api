@@ -1,0 +1,219 @@
+{
+	"title": "API Delete all data",
+	"api": [
+	{
+			"des": "Delete review meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/deleteReview",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+				"itemId": "${newMealReview2.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get all review meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/getAllReviews",
+			"body": {
+				"mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						{
+							"rating": "${newMealReview.baseClass[0].rating}",
+							"review": "${newMealReview.baseClass[0].review}",
+							"aid": "${newMealReview.baseClass[0].aid}",
+							"createDate": "${newMealReview.baseClass[0].createDate}",
+							"itemId": "${newMealReview.baseClass[0].itemId}",
+							"objectId": "${newMealReview.baseClass[0].objectId}",
+							"typeReview": "${newMealReview.baseClass[0].typeReview}",
+							"userName": "${newMealReview.baseClass[0].userName}",
+							"userAvatar": "${newMealReview.baseClass[0].userAvatar}"
+						}
+					]
+				}
+			}
+		},
+		{
+			"des": "Delete review by meal ID",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/deleteReviewByOId",
+			"body": {
+				"aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+				"objectId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get all review meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/meal/getAllReviews",
+			"body": {
+				"mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass?": 0
+				}
+			}
+		},
+		{
+			"des": "Delete meal",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/deleteMeal",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "mealId": "${newMeal.baseClass[0].itemId}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get user meals",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/getUserMeals",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass?": 0
+				}
+			}
+		},
+		{
+			"des": "Delete review places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/deleteReview",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "itemId": "${newReviewPlace1.baseClass[0].itemId}"
+			},
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get all review places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/getAllReviews",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},			
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass?": 1
+				}
+			}
+		},
+		{
+			"des": "Delete reviews by places id",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/deleteReviewByOId",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "objectId": "${newPlace.baseClass[0].itemId}"
+			},
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get all review places",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/review/place/getAllReviews",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},			
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": 0
+				}
+			}
+		},
+		{
+			"des": "Delete place",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/deletePlace",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}",
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},
+			"doc": {
+				"body": "requestReviewPlace",
+				"actual": "res"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		},
+		{
+			"des": "Get place details",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/whatseat/place/getDetailedPlace",
+			"body": {
+		    "placeId": "${newPlace.baseClass[0].itemId}"
+			},			
+			"expect": {
+				"data": {
+					"code": "OK",
+					"baseClass": [
+						"${utils.null}"
+					]
+				}
+			}
+		},
+		{
+			"des": "Logout",
+			"method": "POST",
+			"url": "${env.url}:${env.port}/hugelist/account/logout",
+			"body": {
+		    "aid": "${currentUser.baseClass[0].aid}",
+		    "token": "${currentUser.baseClass[0].token}"
+			},
+			"expect": {
+				"data": {
+					"code": "OK"
+				}
+			}
+		}
+	]
+}

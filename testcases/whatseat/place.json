@@ -347,7 +347,7 @@
 		    "review": "${newReviewPlace1.baseClass[0].review} updated",
 		    "placeId": "${newPlace2.baseClass[0].itemId}"
 			},
-			"var": "newReview",			
+			"var": "newReviewPlace1",			
 			"expect": {
 				"data": {
 					"code": "OK"
@@ -364,8 +364,8 @@
 			"url": "${env.url}:${env.port}/whatseat/review/place/getAllReviews",
 			"body": {
 		    "placeId": "${newPlace.baseClass[0].itemId}"
-			},			
-			"var": "newReview",
+			},
+			"delay": 500,
 			"expect": {
 				"data": {
 					"code": "OK",

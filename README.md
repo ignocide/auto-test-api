@@ -99,6 +99,7 @@ Your testcase: testcases/login.json
 	"title": "User APIs", // title testcase
 	"api": [
 		{   // Declare API
+			"delay": 500, // Delay time to execute this API is 500 ms
 			"des": "Login", // API Description
 			"method": "POST", // Http method: POST, GET, PUT, DELETE, HEAD
 			"url": "http://localhost:8080/nanacloset/account/login", // URL Request
@@ -211,7 +212,7 @@ Some operator in new update
 In expect field
 ```
 "username": "user" // Check username must be "user"
-"username": "uname" // Check username must be NOT "user"
+"username!": "uname" // Check username must be NOT "uname"
 ":menu": ["food", "warter", "rice"] // ":" at the first means that IN. Check actual data(response data) must be in food, warter or rice
 "!:menu": ["food", "warter", "rice"] // check actual data must be NOT in food, warter, rice
 "menu:": ["food", "warter"] // ":" at the last means that IN. It will check food, warter must existed in actual data(response data)

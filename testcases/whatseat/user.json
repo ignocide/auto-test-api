@@ -13,14 +13,20 @@
 		    "displayName": "${this.userName}",
 		    "mobilePhone": "0973363999",
 		    "homePhone": "0973363999",
-		    "deviceId": []
+		    "background": "http://localhost/background.jpg",
+		    "deviceId": [
+		    	"000000000000000000000000000000000000000000000000000000000000000000000"
+		    ]
 			},
-			"var": "newUser",
+			"var": "currentUser",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"body": "requestUser",
+				"actual": "res|responseUsers"
 			}
 		},
 		{
@@ -28,15 +34,18 @@
 			"method": "POST",
 			"url": "${env.url}:${env.port}/hugelist/account/login",
 			"body": {
-			    "userName": "${newUser.baseClass[0].userName}",
+			    "userName": "${currentUser.baseClass[0].userName}",
 			    "passWord": "123aA"
 			},
 			"var": "currentUser",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"body": "requestUser",
+				"actual": "res|responseUsers"
 			}
 		},
 		{
@@ -45,18 +54,29 @@
 			"url": "${env.url}:${env.port}/hugelist/account/updateAccount",
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}",
-		    "userName": "${currentUser.baseClass[0].userName}",
 		    "token": "${currentUser.baseClass[0].token}",
-		    "email": "updated.${newUser.baseClass[0].email}",
-		    "displayName": "Display name",
-		    "aboutMe": "About me",
-		    "address": "Address",
-		    "deviceId": []
+		    "userName": "${currentUser.baseClass[0].userName}",		    
+		    "email": "updated.${currentUser.baseClass[0].email}",
+		    "role": "member",
+		    "displayName": "Display name updated",
+		    "aboutMe": "About me updated",
+		    "address": "Address updated",
+		    "mobile": "0000000000",
+		    "homePhone": "11111111111",
+		    "avatar": "http://localhost/avata-updated.jpg",
+		    "background": "http://localhost/background-updated.jpg",
+		    "deviceId": [
+		    	"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa000000000",
+		    	"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb000000000"
+		    ]
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"body": "requestAuth|requestUser"
 			}
 		},
 		{
@@ -67,16 +87,28 @@
 			  "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}"
 			},
+			"delay": 500,
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG",
+					"code": "OK",
 					"baseClass": [
 						{
-							"userName": "${currentUser.baseClass[0].userName}"
+							"email": "updated.${currentUser.baseClass[0].email}",
+					    "role": "member",
+					    "displayName": "Display name updated",
+					    "aboutMe": "About me updated",
+					    "address": "Address updated",
+					    "mobile": "0000000000",
+					    "avatar": "http://localhost/avata-updated.jpg",
+					    "background": "http://localhost/background-updated.jpg"
 					  }
 					]	
 				}
+			},
+			"var": "currentUser",
+			"doc": {
+				"body": "requestAuth",
+				"actual": "res|responseUsers"
 			}
 		},
 		{
@@ -90,8 +122,12 @@
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"body": "requestAuth|requestUser",
+				"actual": "res|responseUsers"
 			}
 		},
 		{
@@ -99,15 +135,18 @@
 			"method": "POST",
 			"url": "${env.url}:${env.port}/hugelist/account/login",
 			"body": {
-			    "userName": "${newUser.baseClass[0].userName}",
+			    "userName": "${currentUser.baseClass[0].userName}",
 			    "passWord": "321Aa"
 			},
 			"var": "currentUser",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
+			},
+			"doc": {
+				"body": "requestUser",
+				"actual": "res|responseUsers"
 			}
 		},
 		{
@@ -119,7 +158,7 @@
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
 			}
 		},
@@ -132,19 +171,21 @@
 			},
 			"var": "currentUserProfile",
 			"expect": {
-				"status": 200,
 				"data": {
-					"code!": "NG",
+					"code": "OK",
 					"baseClass": [
 						{
-							"email": "updated.${newUser.baseClass[0].email}",
-					    "displayName": "Display name",
-					    "aboutMe": "About me",
-					    "address": "Address",
-					    "deviceId": []
+							"email": "${currentUser.baseClass[0].email}",
+					    "displayName": "Display name updated",
+					    "aboutMe": "About me updated",
+					    "address": "Address updated"
 					  }
 					]	
 				}
+			},
+			"doc": {
+				"body": "requestUser",
+				"actual": "res|responseUsers"
 			}
 		}
 	]

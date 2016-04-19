@@ -166,8 +166,8 @@ var getDocBundleObject = function(item, docs){
 				}else{
 					docs[k1] = item[k];
 				}				
-			}else{
-				docs[k1] = "<<< Update later >>>";
+			}else if(!item[k]){
+				docs[k1] = "<<< Not used >>>";
 			}
 		}
 	}
@@ -311,7 +311,7 @@ var compareObj = function(o, n, isOnlyCheck){
 									}
 								}
 								if(!isExisted){
-									error("Expected: Actual array data is contains expect array data, Actual: Reversed", isOnlyCheck);
+									error("Expected: \"" + k + "\" Actual array data is contains expect array data, Actual: Reversed", isOnlyCheck);
 									return false;
 								}
 							}
@@ -324,7 +324,7 @@ var compareObj = function(o, n, isOnlyCheck){
 								}
 							}
 							if(!isExisted){
-								error("Expected: Actual array data is contains expect data, Actual: Reversed", isOnlyCheck);
+								error("Expected: \"" + io + "\" Actual array data is contains expect data, Actual: Reversed", isOnlyCheck);
 								return false;
 							}
 						}
@@ -350,16 +350,18 @@ var compareObj = function(o, n, isOnlyCheck){
 							for(var j in o[io]){							
 								for(var k in n[i]){
 									if(compareObj(o[io][j], n[i][k], true)){
-										error("Expected: Expect array data is not contains actual array data, Actual: Reversed", isOnlyCheck);
+										error("Expected: \"" + i + "." + k + "\" Expect array data is not contains actual array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
 										return false;
 									}
 								}
 							}
 						}else{
 							for(var j in o[io]){							
-								if(compareObj(o[io][j], n[i][k], true)){
-									error("Expected: Expect array data is not contains actual data, Actual: Reversed", isOnlyCheck);
-									return false;
+								for(var k in n[i]){
+									if(compareObj(o[io][j], n[i][k], true)){
+										error("Expected: \"" + i + "." + k + "\" Expect array data is not contains actual data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+										return false;
+									}
 								}
 							}
 						}
@@ -369,16 +371,18 @@ var compareObj = function(o, n, isOnlyCheck){
 							for(var k in n[i]){
 								for(var j in o[io]){							
 									if(compareObj(o[io][j], n[i][k], true)){
-										error("Expected: Actual array data is not contains expect array data, Actual: Reversed", isOnlyCheck);
+										error("Expected: \"" + i + "." + k + "\" Actual array data is not contains expect array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
 										return false;
 									}
 								}
 							}
 						}else{
-							for(var j in o[io]){							
-								if(compareObj(o[io][j], n[i][k], true)){
-									error("Expected: Actual array data is not contains expect data, Actual: Reversed", isOnlyCheck);
-									return false;
+							for(var k in n[i]){
+								for(var j in o[io]){
+									if(compareObj(o[io][j], n[i][k], true)){
+										error("Expected: \"" + i + "." + k + "\" Actual array data is not contains expect data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+										return false;
+									}
 								}
 							}
 						}
@@ -491,126 +495,128 @@ var reqApi = function(apis, cur, fcDone){
 	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start = new Date().getTime();
 	if(!root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers)
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers = vs.headers;
-	request(function(res){
-		if(api.var) {
-			if(impactVariable[api.var]) {
-				if(!root.warning) root.warning = [];
-				root.warning.push('Duplicate variable ' + api.var + " - ID: " + api.id);
-			}
-			impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;					
-		}
-		if(res){
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {status: res.statusCode, data: null, html: res.raw_body};
-			try{
-				var rs = JSON.parse(res.raw_body.toString());
-				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
-				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);							
-			}catch(e){
-				if(res.raw_body){
-					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.raw_body.toString();
-					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(res.raw_body.toString());
+	setTimeout(function(){
+		request(function(res){
+			if(api.var) {
+				if(impactVariable[api.var]) {
+					if(!root.warning) root.warning = [];
+					root.warning.push('Duplicate variable ' + api.var + " - ID: " + api.id);
 				}
+				impactVariable[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].id;					
 			}
-			if(!res.error) {
-				if(!api.expect.status){
-					if(root.status) api.expect.status = root.status;
+			if(res){
+				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual = {status: res.statusCode, data: null, html: res.raw_body};
+				try{
+					var rs = JSON.parse(res.raw_body.toString());
+					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = rs;
+					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(rs);							
+				}catch(e){
+					if(res.raw_body){
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.raw_body.toString();
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['#actual'] = copyToActualDoc(res.raw_body.toString());
+					}
 				}
-				if(api.expect.status){
-					if(api.expect.status instanceof Array){
-						if(api.expect.status.indexOf(res.statusCode) == -1){
+				if(!res.error) {
+					if(!api.expect.status){
+						if(root.status) api.expect.status = root.status;
+					}
+					if(api.expect.status){
+						if(api.expect.status instanceof Array){
+							if(api.expect.status.indexOf(res.statusCode) == -1){
+								error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
+								root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;	
+							}
+						}else if(api.expect.status != res.statusCode){
 							error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;	
-						}
-					}else if(api.expect.status != res.statusCode){
-						error('Expected status: \"' + api.expect.status + "\", Actual status: " + "\"" + res.statusCode + "\"");					
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;
-					}
-				}
-				if(api.expect.data){					
-					if(typeof(api.expect.data) == 'object'){
-						try{
-							api.expect.data = handleBody(api.expect.data);														
-							if(compareObj(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data, api.expect.data)){
-								if(api.var){
-									if(keywords.indexOf(api.var) != -1){
-										console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
-										throw 'Variable name is same keywords';
-									}
-					  			vs[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data;
-					  		}
-							}
-						}catch(e){
-							console.error(e);
-						}
-					}else {
-						if(res.raw_body != api.data){
-							error("Expected: \"" + api.data + "\", Actual: \"" + res.raw_body + "\"");
-						}else if(api.var){
-							if(keywords.indexOf(api.var) != -1){
-								console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
-								throw 'Variable name is same keywords';
-							}
-		  				vs[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data;
-		  			}
-					}
-				}				
-				var updateDeepObject = function(old, update){
-					for(var k in update){
-						if(update[k] instanceof Array){
-							updateDeepObject(old[k], update[k]);
-						} else if(update[k] instanceof Object){
-							updateDeepObject(old[k], update[k]);
-						}else{
-							old[k] = update[k];
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data = res.code;
 						}
 					}
-					for(var i in old){
-						if(update[i] == undefined)
-							delete old[i];
-					}
-					return old;
-				};
-				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['output'] = removeSpecialInField(api.expect);
-				if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass !== false  && api.apply){
-					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies = [];
-					for(var o in api.apply){
-						var obj = {varName: o};
-						obj.oldValue = JSON.parse(JSON.stringify(vs[o]));
-						var objChange = {};
-						for(f in api.apply[o]){
+					if(api.expect.data){					
+						if(typeof(api.expect.data) == 'object'){
 							try{
-								objChange[f] = handleBody(api.apply[o][f]);
+								api.expect.data = handleBody(api.expect.data);														
+								if(compareObj(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data, api.expect.data)){
+									if(api.var){
+										if(keywords.indexOf(api.var) != -1){
+											console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
+											throw 'Variable name is same keywords';
+										}
+						  			vs[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data;
+						  		}
+								}
 							}catch(e){
-								console.errro(e);
+								console.error(e);
 							}
-						}								
-						vs[o] = updateDeepObject(vs[o], objChange);								
-						obj.newValue = vs[o];
-						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies.push(obj);
+						}else {
+							if(res.raw_body != api.data){
+								error("Expected: \"" + api.data + "\", Actual: \"" + res.raw_body + "\"");
+							}else if(api.var){
+								if(keywords.indexOf(api.var) != -1){
+									console.log('Please rename variable "' + api.var + '" to something which is not in "' + keywords.join(',') + '"');
+									throw 'Variable name is same keywords';
+								}
+			  				vs[api.var] = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].actual.data;
+			  			}
+						}
+					}				
+					var updateDeepObject = function(old, update){
+						for(var k in update){
+							if(update[k] instanceof Array){
+								updateDeepObject(old[k], update[k]);
+							} else if(update[k] instanceof Object){
+								updateDeepObject(old[k], update[k]);
+							}else{
+								old[k] = update[k];
+							}
+						}
+						for(var i in old){
+							if(update[i] == undefined)
+								delete old[i];
+						}
+						return old;
+					};
+					root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex]['output'] = removeSpecialInField(api.expect);
+					if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass !== false  && api.apply){
+						root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies = [];
+						for(var o in api.apply){
+							var obj = {varName: o};
+							obj.oldValue = JSON.parse(JSON.stringify(vs[o]));
+							var objChange = {};
+							for(f in api.apply[o]){
+								try{
+									objChange[f] = handleBody(api.apply[o][f]);
+								}catch(e){
+									console.errro(e);
+								}
+							}								
+							vs[o] = updateDeepObject(vs[o], objChange);								
+							obj.newValue = vs[o];
+							root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].applies.push(obj);
+						}
 					}
+					if(api.doc && api.doc.actual){
+						api['@actual'] = copyToDoc(api.actual.data, getDocBundle(api.doc.actual));					
+					}
+				}else{						
+					error(res.error.toString());
 				}
-				if(api.doc && api.doc.actual){
-					api['@actual'] = copyToDoc(api.actual.data, getDocBundle(api.doc.actual));					
-				}
-			}else{						
-				error(res.error.toString());
 			}
-		}
-		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
-		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.duration = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop - root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start;			
-		if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined){
-			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = true;
-			root.testcases[testResult.current.testcasesIndex].pass++;
-			root.pass++;
-		}else {
-			root.testcases[testResult.current.testcasesIndex].fail++;
-			root.fail++;
-		}
-		if(executeType != 1)
-			reqApi(apis, ++cur, fcDone);
-		else if(fcDone)
-			fcDone();
-	}, api.method, api.url, api.body, api.headers);
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop = new Date().getTime();			
+			root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.duration = root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.stop - root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.start;			
+			if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass == undefined){
+				root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = true;
+				root.testcases[testResult.current.testcasesIndex].pass++;
+				root.pass++;
+			}else {
+				root.testcases[testResult.current.testcasesIndex].fail++;
+				root.fail++;
+			}
+			if(executeType != 1)
+				reqApi(apis, ++cur, fcDone);
+			else if(fcDone)
+				fcDone();
+		}, api.method, api.url, api.body, api.headers);
+	}, api.delay ? api.delay : 0)	
 }
 
 var prehandleFile = function(file, fcDone){
