@@ -422,38 +422,48 @@ var compareObj = function(o, n, isOnlyCheck){
 								// 	error("Expected type of " + i + " is string, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])));
 								// 	return false;
 								// }else 
-								if(matchRegex[1] == 'string'){
-									if(typeof(o[i]) != 'string'){
-										error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
-										return false;
+								if(matchRegex[1] != '*'){
+									var canNull = false;
+									if(matchRegex[1].indexOf("*") != -1){
+										matchRegex[1] = matchRegex[1].split('*')[0];
+										canNull = true;
 									}
-								}else if(matchRegex[1] == 'number'){
-									if(typeof(o[i]) != 'number'){
-										error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
-										return false;
-									}
-								}else if(matchRegex[1] == 'object'){
-									if(!(o[i] instanceof Object)){
-										error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])), isOnlyCheck);
-										return false;
-									}
-								}else if(matchRegex[1] == 'array'){
-									if(!(o[i] instanceof Array)){
-										error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[i] instanceof Object ? "object" : typeof(o[i])), isOnlyCheck);
-										return false;
-									}
-								}else {
-									var regex = matchRegex[1];
-									if(regex.indexOf('/') == 0){
-										regex = regex.match(/\/(.*?)\/(.+)/);
-										regex = new RegExp(regex[1], regex[2] ? regex[2] : '');
-										debugger;
+									if(canNull && o[i] == null){
+										
 									}else{
-										regex = new RegExp(regex);
-									}
-									if(!regex.test(o[i])){
-										error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is \"" + o[i] + "\"", isOnlyCheck);
-										return false;
+										if(matchRegex[1] == 'string'){
+											if(typeof(o[i]) != 'string'){
+												error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
+												return false;
+											}
+										}else if(matchRegex[1] == 'number'){
+											if(typeof(o[i]) != 'number'){
+												error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
+												return false;
+											}
+										}else if(matchRegex[1] == 'object'){
+											if(!(o[i] instanceof Object)){
+												error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])), isOnlyCheck);
+												return false;
+											}
+										}else if(matchRegex[1] == 'array'){
+											if(!(o[i] instanceof Array)){
+												error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[i] instanceof Object ? "object" : typeof(o[i])), isOnlyCheck);
+												return false;
+											}
+										}else {
+											var regex = matchRegex[1];
+											if(regex.indexOf('/') == 0){
+												regex = regex.match(/\/(.*?)\/(.+)/);
+												regex = new RegExp(regex[1], regex[2] ? regex[2] : '');
+											}else{
+												regex = new RegExp(regex);
+											}
+											if(!regex.test(o[i])){
+												error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is \"" + o[i] + "\"", isOnlyCheck);
+												return false;
+											}
+										}
 									}
 								}
 							}else if(n[i] != o[i]){
