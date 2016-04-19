@@ -156,6 +156,10 @@
 				"data": {
 					"code": "OK"
 				}
+			}, 
+			"doc": {
+				"body": "requestUser",
+				"actual": "res"
 			}
 		},
 		{
