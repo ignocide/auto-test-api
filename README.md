@@ -216,6 +216,7 @@ In expect field
 ":menu": ["food", "warter", "rice"] // ":" at the first means that IN. Check actual data(response data) must be in food, warter or rice
 "!:menu": ["food", "warter", "rice"] // check actual data must be NOT in food, warter, rice
 "menu:": ["food", "warter"] // ":" at the last means that IN. It will check food, warter must existed in actual data(response data)
+"meal=": [{"name": "food", "des": "$(string)"}, {"name": "fish", "des": "$(string)"}] // Match actual data(response data) must be match "meal". Example: the first record in actual data must be object which has name is food and typeof des is string, and the second has name is fish and des is string too. If meal is object (not array), it will be match all actual data is valid meal object
 "hobby?": 3 // Hobby in response is array. "?" mean that LENGTH. It'll check number of items in hoppy is 3 items
 "$(string*)" // return value type must be string or null
 "$(number*)" // return value type must be number or null

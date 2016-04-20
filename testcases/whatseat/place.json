@@ -210,22 +210,18 @@
 			},
 			"expect": {
 				"data": {
-					"code": "OK"
-				},
+					"code": "OK",
 					"baseClass": [
 						{
 							"itemId" : "${newPlace.baseClass[0].itemId}",
 							"title": "${newPlace.baseClass[0].title}",
 				    	"address": "${newPlace.baseClass[0].address}",
-				    	"itemDescription": "${newPlace.baseClass[0].itemDescription}",
 				    	"cuisineId": "${newPlace.baseClass[0].cuisineId}",
-				    	"nationality": "${newPlace.baseClass[0].nationality}",
 				    	"placeIcon": "${newPlace.baseClass[0].placeIcon}",
-				    	"location": "${newPlace.baseClass[0].location}",
-				    	"enableReview": "${newPlace.baseClass[0].enableReview}",
-				    	"photos": "${newPlace.baseClass[0].photos}"
+				    	"location": "${newPlace.baseClass[0].location}"
 						}
 					]
+				}
 			}
 		},
 		{

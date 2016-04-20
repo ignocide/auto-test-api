@@ -76,7 +76,8 @@
 				}
 			},
 			"doc": {
-				"body": "requestAuth|requestUser"
+				"body": "requestAuth|requestUser",
+				"actual": "res"
 			}
 		},
 		{

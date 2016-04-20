@@ -161,8 +161,10 @@
 										<td class="mdl-data-table__cell--non-numeric scols"><a href="javascript:void(0)" ng-click="showLog('Value of ' + api.var, api.actual.data);"><b ng-bind="api.var"></b></a></td>
 										<td class="mdl-data-table__cell--non-numeric scols"><a href="javascript:void(0)" ng-click="showLog('Apply value', api.applies);"><b ng-bind="api.applies"></b></a></td>
 										<td class="mdl-data-table__cell--non-numeric scols">
-											<pre ng-bind="api.resultTest.des"></pre>
-											<a href="#{{api.resultTest.impactId}}" ng-if="api.resultTest.impactId">impact to {{api.resultTest.impactId}}</a>
+											<div ng-if="!api.resultTest.pass">
+												<pre ng-bind="api.resultTest.des"></pre>
+												<a href="#{{api.resultTest.impactId}}" ng-if="api.resultTest.impactId">impact to {{api.resultTest.impactId}}</a>
+											</div>
 										</td>
 									</tr>
 								</tbody>

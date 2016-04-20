@@ -242,25 +242,26 @@ var request = function(fcDone, method, url, body, headers){
 
 var error = function(des, isOnlyCheck){
 	if(!isOnlyCheck){
-		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
-		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des += des.toString();
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;		
 		// typeof(des) == 'object' ? JSON.stringify(des) : des + '\n';
 	}
+	if(root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des.length > 0)
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des += "\n";
+	root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des += des.toString();
 };
 
 var compareObj = function(o, n, isOnlyCheck){	
 	for(var i in n){
-		var g = i.match(/[\*!:?]+/);
+		var g = i.match(/[\*!:?=]+/);
 		var io = i;
 		if(g != null){
 			io = i.match(/\w+/)[0];
 			if(g[0] == '*'){
-				if(!o[io]){
-					error("Expected: " + io + " must be something, Actual: " + io + " is nothing", isOnlyCheck);
-					return true;
+				if(o[io] === undefined){
+					error("Expected: " + io + " must be something, Actual: " + io + " is undefined", isOnlyCheck);
+					return false;
 				}
-			}
-			if(n[i] instanceof Array){
+			}else if(n[i] instanceof Array){
 				if(g[0] == ':'){
 					if(i.indexOf(g[0]) == 0){
 						// Actual data in array expect data
@@ -277,7 +278,7 @@ var compareObj = function(o, n, isOnlyCheck){
 						// 		return false;
 						// 	}
 						// }
-						// Actual data in array expect data
+						// Actual data in array expect data						
 						if(o[io] instanceof Array){														
 							for(var j in o[io]){
 								var isExisted = false;								
@@ -370,6 +371,15 @@ var compareObj = function(o, n, isOnlyCheck){
 							}
 						}
 					}
+				}else if(g[0] == '='){
+					if(o[io] instanceof Array){
+						for(var j in o[io]){
+							if(!compareObj(o[io][j], n[i][j%n[i].length], true)){
+								error("Expected: \"" + io + "." + (j%n[i].length) + "\" Expect array data match actual array data by order, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+								return false;
+							}
+						}
+					}
 				}
 			}else if(n[i] instanceof Object){
 				if(g[0] == ':' && i.indexOf(g[0]) != 0){
@@ -391,14 +401,21 @@ var compareObj = function(o, n, isOnlyCheck){
 					// Expect data not in array actual data
 					if(o[io] instanceof Array){
 						for(var j in o[io]){							
-							if(compareObj(o[io][j], n[i][k], true)){
+							if(compareObj(o[io][j], n[i], true)){
 								error("Expected: \"" + i + "." + k + "\" Actual array data not contains expect data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
 								return false;
 							}
 						}
 					}
-				}else{
-					return compareObj(o[io], n[i], isOnlyCheck);
+				}else if(g[0] == '='){
+					if(o[io] instanceof Array){
+						for(var j in o[io]){
+							if(!compareObj(o[io][j], n[i], true)){
+								error("Expected: \"" + i + "\" Expect data match actual array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+								return false;
+							}
+						}
+					}
 				}
 			}else {
 				if(g[0] == '!'){
@@ -415,7 +432,8 @@ var compareObj = function(o, n, isOnlyCheck){
 			}
 		}else{
 			if(n[i] instanceof Object){				
-				return compareObj(o[io], n[i], isOnlyCheck);
+				if(!compareObj(o[io], n[i], isOnlyCheck))
+					return false;
 			}else {
 				try{
 					if(n[i] === undefined){
@@ -437,14 +455,14 @@ var compareObj = function(o, n, isOnlyCheck){
 										if(matchRegex[1].indexOf('*') != -1 && o[io] == null){
 
 										}else if(typeof(o[io]) != 'string'){
-											error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[io], isOnlyCheck));
+											error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[io]), isOnlyCheck);
 											return false;
 										}
 									}else if(matchRegex[1].indexOf('number') == 0){
 										if(matchRegex[1].indexOf('*') != -1 && o[io] == null){
 											
 										}else if(typeof(o[io]) != 'number'){
-											error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[io], isOnlyCheck));
+											error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[io]), isOnlyCheck);
 											return false;
 										}
 									}else if(matchRegex[1].indexOf('object') == 0){
@@ -515,6 +533,7 @@ var reqApi = function(apis, cur, fcDone){
 	if(!root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers)
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].headers = vs.headers;
 	setTimeout(function(){
+		if(api.des == 'Get places test in') debugger;
 		request(function(res){
 			if(api.var) {
 				if(impactVariable[api.var]) {

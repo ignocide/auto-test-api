@@ -48,8 +48,8 @@
 							"ratingScore":"$(number)",
 							"reviewScore":"$(number)",
 							"createDate":"$(string)",
-							"expiredDate":"$(string)",
-							"removeDate":"$(string)",
+							"expiredDate":"$(string*)",
+							"removeDate":"$(string*)",
 							"state":"$(number)"
 						}
 					]
@@ -86,7 +86,7 @@
 								"title":"${newMeal.baseClass[0].place.title}"
 							},
 							"nationality":"${newMeal.baseClass[0].nationality}",
-							"photos":"${newMeal.baseClass[0].photos}",
+							":photos":"${newMeal.baseClass[0].photos}",
 							"title":"${newMeal.baseClass[0].title}",
 							"ratingScore":"${newMeal.baseClass[0].ratingScore}",
 							"reviewScore":"${newMeal.baseClass[0].reviewScore}",
@@ -334,16 +334,16 @@
 							"userAvatar":"$(string)",
 							"userName":"$(string)",
 							"cuisineId":"${listCuisines.baseClass[0].itemId}",
-							"itemDescription":"$(/.*?Meal description.*/i)",
+							"itemDescription":"$(/.*?meal description.*/i)",
 							"place":{
 								"itemId":"$(string)",
 								"address":"$(string)",
 								"location": "$(^[\\d\\.]+?\\s?,\\s?[\\d\\.]+$)",
 								"title":"$(string)"
 							},
-							"nationality":"$(string)",
+							"nationality":"$(string*)",
 							"photos":"$(array)",
-							"title":"$(.*?meal.*)",
+							"title":"$(/.*?meal.*/i)",
 							"ratingScore":"$(number)",
 							"reviewScore":"$(number)"
 						}
