@@ -243,22 +243,24 @@ var request = function(fcDone, method, url, body, headers){
 var error = function(des, isOnlyCheck){
 	if(!isOnlyCheck){
 		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.pass = false;
-		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des += typeof(des) == 'object' ? JSON.stringify(des) : des + '\n';
+		root.testcases[testResult.current.testcasesIndex].api[testResult.current.apiIndex].resultTest.des += des.toString();
+		// typeof(des) == 'object' ? JSON.stringify(des) : des + '\n';
 	}
 };
 
 var compareObj = function(o, n, isOnlyCheck){	
 	for(var i in n){
 		var g = i.match(/[\*!:?]+/);
+		var io = i;
 		if(g != null){
-			var io = i.match(/\w+/)[0];
+			io = i.match(/\w+/)[0];
 			if(g[0] == '*'){
 				if(!o[io]){
 					error("Expected: " + io + " must be something, Actual: " + io + " is nothing", isOnlyCheck);
 					return true;
 				}
 			}
-			if(n[i] instanceof Array){				
+			if(n[i] instanceof Array){
 				if(g[0] == ':'){
 					if(i.indexOf(g[0]) == 0){
 						// Actual data in array expect data
@@ -275,8 +277,8 @@ var compareObj = function(o, n, isOnlyCheck){
 						// 		return false;
 						// 	}
 						// }
-						// Expect data in array actual data
-						if(n[i] instanceof Array){
+						// Actual data in array expect data
+						if(o[io] instanceof Array){														
 							for(var j in o[io]){
 								var isExisted = false;								
 								for(var k in n[i]){
@@ -286,22 +288,26 @@ var compareObj = function(o, n, isOnlyCheck){
 									}
 								}
 								if(!isExisted){
-									error("Expected: Expect array data is contains actual array data, Actual: Reversed", isOnlyCheck);
+									error("Expected: Expect array data contains actual array data, Actual: Reversed", isOnlyCheck);
 									return false;
 								}
 							}
 						}else{
 							var isExisted = false;
-							for(var j in o[io]){							
-								if(!compareObj(o[io][j], n[i][k], true)){
-									error("Expected: Expect array data is contains actual data, Actual: Reversed", isOnlyCheck);
-									return false;		
+							for(var k in n[i]){							
+								if(compareObj(o[io], n[i][k], true)){
+									isExisted = true;
+										break;										
 								}
+							}
+							if(!isExisted){
+								error("Expected: Expect array data contains actual data, Actual: Reversed", isOnlyCheck);
+								return false;
 							}
 						}
 					}else{
 						// Expect data in array actual data
-						if(n[i] instanceof Array){
+						if(o[io] instanceof Array){
 							for(var k in n[i]){
 								var isExisted = false;
 								for(var j in o[io]){							
@@ -311,21 +317,9 @@ var compareObj = function(o, n, isOnlyCheck){
 									}
 								}
 								if(!isExisted){
-									error("Expected: \"" + k + "\" Actual array data is contains expect array data, Actual: Reversed", isOnlyCheck);
+									error("Expected: \"" + k + "\" Actual array data contains expect array data, Actual: Reversed", isOnlyCheck);
 									return false;
 								}
-							}
-						}else{
-							var isExisted = false;
-							for(var j in o[io]){							
-								if(compareObj(o[io][j], n[i][k], true)){
-									isExisted = true;
-									break;										
-								}
-							}
-							if(!isExisted){
-								error("Expected: \"" + io + "\" Actual array data is contains expect data, Actual: Reversed", isOnlyCheck);
-								return false;
 							}
 						}
 					}
@@ -346,41 +340,30 @@ var compareObj = function(o, n, isOnlyCheck){
 						// 	}
 						// }
 						// Expect data not in array actual data
-						if(n[i] instanceof Array){							
-							for(var j in o[io]){							
-								for(var k in n[i]){
+						if(o[io] instanceof Array){							
+							for(var k in n[i]){
+								for(var j in o[io]){															
 									if(compareObj(o[io][j], n[i][k], true)){
-										error("Expected: \"" + i + "." + k + "\" Expect array data is not contains actual array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+										error("Expected: \"" + i + "." + k + "\" Expect array data not contains actual array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
 										return false;
 									}
 								}
 							}
 						}else{
-							for(var j in o[io]){							
-								for(var k in n[i]){
-									if(compareObj(o[io][j], n[i][k], true)){
-										error("Expected: \"" + i + "." + k + "\" Expect array data is not contains actual data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
-										return false;
-									}
+							for(var k in n[i]){
+								if(compareObj(o[io], n[i][k], true)){
+									error("Expected: \"" + i + "." + k + "\" Expect array data not contains actual data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+									return false;
 								}
 							}
 						}
 					}else{
 						// Expect data not in array actual data
-						if(n[i] instanceof Array){
+						if(o[io] instanceof Array){
 							for(var k in n[i]){
 								for(var j in o[io]){							
 									if(compareObj(o[io][j], n[i][k], true)){
-										error("Expected: \"" + i + "." + k + "\" Actual array data is not contains expect array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
-										return false;
-									}
-								}
-							}
-						}else{
-							for(var k in n[i]){
-								for(var j in o[io]){
-									if(compareObj(o[io][j], n[i][k], true)){
-										error("Expected: \"" + i + "." + k + "\" Actual array data is not contains expect data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+										error("Expected: \"" + i + "." + k + "\" Actual array data not contains expect array data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
 										return false;
 									}
 								}
@@ -389,7 +372,34 @@ var compareObj = function(o, n, isOnlyCheck){
 					}
 				}
 			}else if(n[i] instanceof Object){
-				return compareObj(o[i], n[i], isOnlyCheck);
+				if(g[0] == ':' && i.indexOf(g[0]) != 0){
+					// Expect data in array actual data
+					if(o[io] instanceof Array){
+						var isExisted = false;
+						for(var j in o[io]){							
+							if(compareObj(o[io][j], n[i], true)){
+								isExisted = true;
+								break;										
+							}
+						}
+						if(!isExisted){
+							error("Expected: \"" + k + "\" Actual array data contains expect data, Actual: Reversed", isOnlyCheck);
+							return false;
+						}
+					}
+				}else if(g[0] == '!:' && i.indexOf(g[0]) != 0){
+					// Expect data not in array actual data
+					if(o[io] instanceof Array){
+						for(var j in o[io]){							
+							if(compareObj(o[io][j], n[i][k], true)){
+								error("Expected: \"" + i + "." + k + "\" Actual array data not contains expect data, Actual: \"" + io + "." + j + "\" Reversed", isOnlyCheck);
+								return false;
+							}
+						}
+					}
+				}else{
+					return compareObj(o[io], n[i], isOnlyCheck);
+				}
 			}else {
 				if(g[0] == '!'){
 					if(n[i] == o[io]){
@@ -405,73 +415,72 @@ var compareObj = function(o, n, isOnlyCheck){
 			}
 		}else{
 			if(n[i] instanceof Object){				
-				return compareObj(o[i], n[i], isOnlyCheck);
+				return compareObj(o[io], n[i], isOnlyCheck);
 			}else {
 				try{
 					if(n[i] === undefined){
 						error("There is not field \"" + i + "\" in expected data", isOnlyCheck);
 						return false;
-					}else if(o[i] === undefined){
+					}else if(o[io] === undefined){
 						error("There is not field \"" + i + "\" in actual data", isOnlyCheck);
 						return false;
 					}else{ 
 						if(typeof(n[i]) == 'string'){							
 							var matchRegex = n[i].match(/\$\((.*?)\)/);
 							if(matchRegex != null && matchRegex.length > 1){
-								// if(typeof(o[i]) != 'string'){
-								// 	error("Expected type of " + i + " is string, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])));
+								// if(typeof(o[io]) != 'string'){
+								// 	error("Expected type of " + i + " is string, Actual: type of " + i + " is " + (o[io] instanceof Array ? "array" : typeof(o[io])));
 								// 	return false;
 								// }else 
 								if(matchRegex[1] != '*'){
-									var canNull = false;
-									if(matchRegex[1].indexOf("*") != -1){
-										matchRegex[1] = matchRegex[1].split('*')[0];
-										canNull = true;
-									}
-									if(canNull && o[i] == null){
-										
-									}else{
-										if(matchRegex[1] == 'string'){
-											if(typeof(o[i]) != 'string'){
-												error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
-												return false;
-											}
-										}else if(matchRegex[1] == 'number'){
-											if(typeof(o[i]) != 'number'){
-												error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[i], isOnlyCheck));
-												return false;
-											}
-										}else if(matchRegex[1] == 'object'){
-											if(!(o[i] instanceof Object)){
-												error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[i] instanceof Array ? "array" : typeof(o[i])), isOnlyCheck);
-												return false;
-											}
-										}else if(matchRegex[1] == 'array'){
-											if(!(o[i] instanceof Array)){
-												error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[i] instanceof Object ? "object" : typeof(o[i])), isOnlyCheck);
-												return false;
-											}
-										}else {
-											var regex = matchRegex[1];
-											if(regex.indexOf('/') == 0){
-												regex = regex.match(/\/(.*?)\/(.+)/);
-												regex = new RegExp(regex[1], regex[2] ? regex[2] : '');
-											}else{
-												regex = new RegExp(regex);
-											}
-											if(!regex.test(o[i])){
-												error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is \"" + o[i] + "\"", isOnlyCheck);
-												return false;
-											}
+									if(matchRegex[1].indexOf('string') == 0){
+										if(matchRegex[1].indexOf('*') != -1 && o[io] == null){
+
+										}else if(typeof(o[io]) != 'string'){
+											error("Expected type of " + i + " is string, Actual: type of " + i + " is " + typeof(o[io], isOnlyCheck));
+											return false;
+										}
+									}else if(matchRegex[1].indexOf('number') == 0){
+										if(matchRegex[1].indexOf('*') != -1 && o[io] == null){
+											
+										}else if(typeof(o[io]) != 'number'){
+											error("Expected type of " + i + " is number, Actual: type of " + i + " is " + typeof(o[io], isOnlyCheck));
+											return false;
+										}
+									}else if(matchRegex[1].indexOf('object') == 0){
+										if(matchRegex[1].indexOf('*') != -1 && o[io] == null){
+											
+										}else if(!(o[io] instanceof Object)){
+											error("Expected type of " + i + " is object, Actual: type of " + i + " is " + (o[io] instanceof Array ? "array" : typeof(o[io])), isOnlyCheck);
+											return false;
+										}
+									}else if(matchRegex[1].indexOf('array') == 0){
+										if(matchRegex[1].indexOf('*') != -1 && o[io] == null){
+											
+										}else if(!(o[io] instanceof Array)){
+											error("Expected type of " + i + " is array, Actual: type of " + i + " is "  + (o[io] instanceof Object ? "object" : typeof(o[io])), isOnlyCheck);
+											return false;
+										}
+									}else {
+										var regex = matchRegex[1];
+										if(regex.indexOf('/') == 0){
+											regex = regex.match(/\/(.*?)\/(.+)/);
+											regex = new RegExp(regex[1], regex[2] ? regex[2] : '');
+										}else{
+											regex = new RegExp(regex);
+										}
+										if(!regex.test(o[io])){
+											error("Expected value of " + i + " is match pattern \"" + matchRegex[1] + "\", Actual: value of " + i + " is \"" + o[io] + "\"", isOnlyCheck);
+											return false;
 										}
 									}
 								}
-							}else if(n[i] != o[i]){
-								error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"", isOnlyCheck);
+							}else if(n[i] != o[io]){
+								error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[io] + "\"", isOnlyCheck);
 								return false;
 							}
-						}else if(n[i] != o[i]){
-							error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[i] + "\"", isOnlyCheck);
+						}else if(n[i] != o[io]){
+							error("Expected: " + i + " = \"" + n[i]+"\", Actual: " + i + " = \"" + o[io] + "\"", isOnlyCheck);
 							return false;
 						}
 					}

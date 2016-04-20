@@ -119,7 +119,7 @@
 			},
 			"expect": {
 				"data": {
-					"code!": "NG"
+					"code": "OK"
 				}
 			},
 			"apply": {
@@ -326,7 +326,7 @@
 					"code": "OK",
 					"baseClass:": [
 						"${newReviewPlace2.baseClass[0]}",
-						"${newReviewPlace1.baseClass[0]}"						
+						"${newReviewPlace1.baseClass[0]}"
 					]
 				}
 			},

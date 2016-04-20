@@ -16,8 +16,11 @@
 						"http://meal-photo1.jpg",
 						"http://meal-photo2.jpg"
 					],
+					"nationality": "VN",
 					"title": "Meal title",
-					"place": "${newPlace.baseClass[0]}"
+					"place": "${newPlace.baseClass[0]}",
+					"userAvatar": "${currentUser.baseClass[0].userAvatar}",
+					"userName": "${currentUser.baseClass[0].userName}"
 		    }
 			},
 			"var": "newMeal",
@@ -324,7 +327,7 @@
 			"expect": {
 				"data": {
 					"code": "OK",
-					"baseClass": [
+					"baseClass=": [
 						{
 							"itemId":"$(string)",
 							"aid":"$(string)",
