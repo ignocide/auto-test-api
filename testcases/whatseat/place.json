@@ -4,7 +4,7 @@
 		{
 			"des": "Add place",
 			"method": "PUT",
-			"url": "${env.url}:${env.port}/whatseat/place/addPlace",
+			"url": "${env.url}:${env.port}/whatseat/place/addPlace?language=vi",
 			"body": {
 		    "aid": "${currentUser.baseClass[0].aid}",
 		    "token": "${currentUser.baseClass[0].token}",
